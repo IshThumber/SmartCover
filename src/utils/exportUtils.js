@@ -1,4 +1,5 @@
 import html2pdf from "html2pdf.js";
+import jsPDF from "jspdf";
 import { Document, Paragraph, TextRun, HeadingLevel, Packer } from "docx";
 import { saveAs } from "file-saver";
 
@@ -283,5 +284,63 @@ export const exportToWord = async (htmlContent, filename = "cover-letter") => {
   } catch (error) {
     console.error("Error exporting to Word:", error);
     throw new Error("Failed to export to Word document");
+  }
+};
+
+/**
+ * Generate a text-selectable PDF from plain text content
+ * @param {string} textContent - The content to include in the PDF (can be converted HTML or Markdown as plain text)
+ * @param {string} filename - Name of the output PDF file (default is "cover-letter")
+ */
+export const exportSelectablePDF = (textContent, filename = "cover-letter") => {
+  try {
+    const doc = new jsPDF({
+      unit: "mm",
+      format: "a4",
+      orientation: "portrait",
+    });
+
+    // Set font and styling
+    doc.setFont("times", "normal");
+    doc.setFontSize(12);
+
+    // Wrap long text to fit page width (180mm wide with 15mm margin on each side)
+    const marginLeft = 15;
+    const marginTop = 20;
+    const maxLineWidth = 180;
+    const lineHeight = 6;
+
+    // Convert HTML to plain text while preserving some structure
+    const cleanText = textContent
+      .replace(/<[^>]*>/g, '') // Remove HTML tags
+      .replace(/&nbsp;/g, ' ') // Replace HTML entities
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .trim();
+
+    const lines = doc.splitTextToSize(cleanText, maxLineWidth);
+    
+    // Add text to PDF with proper line spacing
+    let currentY = marginTop;
+    const pageHeight = 297; // A4 height in mm
+    const marginBottom = 20;
+
+    lines.forEach((line, index) => {
+      // Check if we need a new page
+      if (currentY > pageHeight - marginBottom) {
+        doc.addPage();
+        currentY = marginTop;
+      }
+      
+      doc.text(line, marginLeft, currentY);
+      currentY += lineHeight;
+    });
+
+    doc.save(`${filename}.pdf`);
+  } catch (error) {
+    console.error("Error generating selectable PDF:", error);
+    throw new Error("Failed to generate selectable text PDF");
   }
 };

@@ -13,8 +13,8 @@ import {
   History,
 } from "lucide-react";
 import { extractTextFromFile } from "../utils/fileProcessor";
-import { generateCoverLetterWithGemini, extractNameFromResume, extractContactInfoFromResume } from "../utils/geminiApi";
-import { exportToPDF, exportToHTML, exportToWord } from "../utils/exportUtils";
+import { generateCoverLetterWithGemini } from "../utils/geminiApi";
+import { exportToPDF, exportToHTML, exportToWord, exportSelectablePDF } from "../utils/exportUtils";
 import SavedResumesModal from "./SavedResumesModal";
 
 const CoverLetterGenerator = () => {
@@ -22,6 +22,7 @@ const CoverLetterGenerator = () => {
     jobTitle: "",
     companyName: "",
     jobDescription: "",
+    candidateName: "",
   });
   const [resumeFile, setResumeFile] = useState(null);
   const [resumeText, setResumeText] = useState("");
@@ -65,7 +66,7 @@ const CoverLetterGenerator = () => {
     }
   };
 
-  // Generate cover letter using Gemini API
+  // Generate cover letter using Gemini API with two-prompt approach
   const generateCoverLetter = async () => {
     setIsLoading(true);
     setError("");
@@ -75,24 +76,13 @@ const CoverLetterGenerator = () => {
         formData.jobTitle,
         formData.companyName,
         formData.jobDescription,
-        resumeText
+        resumeText,
+        formData.candidateName
       );
 
-      // Extract contact info and name from resume for personalization
-      const candidateName = extractNameFromResume(resumeText);
-      const contactInfo = extractContactInfoFromResume(resumeText);
-
       console.log("AI Response:", aiResponse);
-      console.log("Candidate Name:", candidateName);
-      console.log("Contact Info:", contactInfo);
-      // Replace placeholders in the AI response with actual contact info
-      let personalizedResponse = aiResponse
-        .replace(/\[Your Name\]/g, candidateName)
-        .replace(/\[Your Email\]/g, contactInfo.email || "[Your Email]")
-        .replace(/\[Your Phone\]/g, contactInfo.phone || "[Your Phone]")
-        .replace(/\[Your LinkedIn\]/g, contactInfo.linkedin || "[Your LinkedIn]");
 
-      setGeneratedCoverLetter(personalizedResponse);
+      setGeneratedCoverLetter(aiResponse);
       setStep(3);
     } catch (err) {
       console.error("Error generating cover letter:", err);
@@ -104,7 +94,13 @@ const CoverLetterGenerator = () => {
 
   // Handle form submission
   const handleSubmit = () => {
-    if (!formData.jobTitle || !formData.companyName || !formData.jobDescription || !resumeText) {
+    if (
+      !formData.candidateName ||
+      !formData.jobTitle ||
+      !formData.companyName ||
+      !formData.jobDescription ||
+      !resumeText
+    ) {
       setError("Please fill in all fields and upload your resume.");
       return;
     }
@@ -115,14 +111,17 @@ const CoverLetterGenerator = () => {
   // Enhanced download options
   const downloadCoverLetter = async (format = "html") => {
     try {
-      const baseFilename = `cover-letter-${formData.companyName.replace(/\s+/g, "-")}-${formData.jobTitle.replace(
+      const baseFilename = `${formData.companyName.replace(/\s+/g, "-")}-${formData.jobTitle.replace(
         /\s+/g,
         "-"
-      )}`;
+      )} - Cover Letter`;
 
       switch (format) {
         case "pdf":
           await exportToPDF(generatedCoverLetter, baseFilename);
+          break;
+        case "pdf-selectable":
+          exportSelectablePDF(generatedCoverLetter, baseFilename);
           break;
         case "docx":
         case "word":
@@ -157,6 +156,15 @@ const CoverLetterGenerator = () => {
     setResumeName(savedResume.name);
     setResumeFile(null); // Clear file reference since we're using saved text
     setError("");
+  };
+
+  // Count words in the generated cover letter
+  const getWordCount = (htmlContent) => {
+    if (!htmlContent) return 0;
+    // Remove HTML tags and count words
+    const textContent = htmlContent.replace(/<[^>]*>/g, " ").trim();
+    const words = textContent.split(/\s+/).filter((word) => word.length > 0);
+    return words.length;
   };
 
   return (
@@ -221,6 +229,22 @@ const CoverLetterGenerator = () => {
               </h2>
 
               <div className="space-y-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Your Full Name *</label>
+                  <input
+                    type="text"
+                    name="candidateName"
+                    value={formData.candidateName}
+                    onChange={handleInputChange}
+                    placeholder="e.g., John Smith"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    required
+                  />
+                  <p className="text-sm text-gray-500 mt-1">
+                    This will be used in the cover letter header and signature
+                  </p>
+                </div>
+
                 <div className="grid md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Job Title *</label>
@@ -366,8 +390,8 @@ const CoverLetterGenerator = () => {
               <Loader2 className="w-16 h-16 text-indigo-600 animate-spin mx-auto mb-6" />
               <h2 className="text-2xl font-bold text-gray-900 mb-4">Generating Your Cover Letter</h2>
               <p className="text-gray-600 mb-4">
-                Our AI is analyzing your resume and crafting a personalized cover letter based on the job
-                requirements...
+                Our AI is analyzing your resume and crafting a concise, professional cover letter (max 3 paragraphs, 300
+                words) based on the job requirements...
               </p>
               <div className="max-w-md mx-auto bg-gray-200 rounded-full h-2">
                 <div className="bg-indigo-600 h-2 rounded-full animate-pulse" style={{ width: "70%" }}></div>
@@ -404,7 +428,7 @@ const CoverLetterGenerator = () => {
                       </button>
                       <div
                         id="download-menu"
-                        className="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-10"
+                        className="hidden absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 z-10"
                       >
                         <button
                           onClick={() => {
@@ -414,7 +438,17 @@ const CoverLetterGenerator = () => {
                           className="w-full text-left px-4 py-2 hover:bg-gray-50 flex items-center gap-2 rounded-t-lg"
                         >
                           <FileDown className="w-4 h-4 text-red-600" />
-                          Download as PDF
+                          PDF (Image-based)
+                        </button>
+                        <button
+                          onClick={() => {
+                            downloadCoverLetter("pdf-selectable");
+                            document.getElementById("download-menu").classList.add("hidden");
+                          }}
+                          className="w-full text-left px-4 py-2 hover:bg-gray-50 flex items-center gap-2"
+                        >
+                          <FileDown className="w-4 h-4 text-red-500" />
+                          PDF (Selectable Text)
                         </button>
                         <button
                           onClick={() => {
@@ -448,6 +482,20 @@ const CoverLetterGenerator = () => {
                       onChange={handleEditChange}
                       className="w-full h-96 p-4 border border-gray-300 rounded-lg font-mono text-sm"
                     />
+                    {/* Word count in edit mode */}
+                    <div className="mt-2 flex justify-between items-center text-sm text-gray-600">
+                      <div className="flex items-center gap-4">
+                        <span>
+                          Word count: <strong>{getWordCount(generatedCoverLetter)}</strong>/300
+                        </span>
+                        {getWordCount(generatedCoverLetter) > 300 && (
+                          <span className="text-amber-600 flex items-center gap-1">
+                            <AlertCircle className="w-4 h-4" />
+                            Consider shortening for best impact
+                          </span>
+                        )}
+                      </div>
+                    </div>
                     <div className="flex justify-end gap-3 mt-4">
                       <button
                         onClick={() => setIsEditMode(false)}
@@ -464,10 +512,33 @@ const CoverLetterGenerator = () => {
                     </div>
                   </div>
                 ) : (
-                  <div
-                    className="prose max-w-none border rounded-lg p-6 bg-gray-50"
-                    dangerouslySetInnerHTML={{ __html: generatedCoverLetter }}
-                  />
+                  <div>
+                    <div
+                      className="prose max-w-none border rounded-lg p-6 bg-gray-50"
+                      dangerouslySetInnerHTML={{ __html: generatedCoverLetter }}
+                    />
+                    {/* Word count indicator */}
+                    <div className="mt-4 flex justify-between items-center text-sm text-gray-600">
+                      <div className="flex items-center gap-4">
+                        <span>
+                          Word count: <strong>{getWordCount(generatedCoverLetter)}</strong>/300
+                        </span>
+                        {getWordCount(generatedCoverLetter) > 300 && (
+                          <span className="text-amber-600 flex items-center gap-1">
+                            <AlertCircle className="w-4 h-4" />
+                            Exceeds recommended length
+                          </span>
+                        )}
+                        {getWordCount(generatedCoverLetter) <= 300 && getWordCount(generatedCoverLetter) > 0 && (
+                          <span className="text-green-600 flex items-center gap-1">
+                            <CheckCircle className="w-4 h-4" />
+                            Perfect length
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-xs text-gray-500">Professional cover letters should be concise</span>
+                    </div>
+                  </div>
                 )}
               </div>
 
@@ -476,7 +547,7 @@ const CoverLetterGenerator = () => {
                   onClick={() => {
                     setStep(1);
                     setGeneratedCoverLetter("");
-                    setFormData({ jobTitle: "", companyName: "", jobDescription: "" });
+                    setFormData({ candidateName: "", jobTitle: "", companyName: "", jobDescription: "" });
                     setResumeFile(null);
                     setResumeText("");
                     setResumeName("");

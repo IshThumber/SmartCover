@@ -24,7 +24,8 @@ A production-ready React application that generates personalized cover letters u
 
 ### 💾 Export Options
 
-- **PDF Export**: High-quality PDF generation with professional formatting
+- **PDF Export (Image-based)**: High-quality PDF generation with professional formatting
+- **PDF Export (Selectable Text)**: Text-selectable PDF for accessibility and easy copying
 - **Word Document**: Native .docx format for easy editing
 - **HTML Export**: Web-friendly format with embedded styling
 - **Multiple Downloads**: Choose your preferred format with one click
@@ -116,7 +117,10 @@ A production-ready React application that generates personalized cover letters u
 
 ### Step 4: Download & Use
 
-- Choose from PDF, Word, or HTML formats
+- **PDF (Image-based)**: Professional formatting, preserves exact layout
+- **PDF (Selectable Text)**: Accessible format with selectable/copyable text
+- **Word Document**: Editable .docx format for further customization
+- **HTML**: Web-friendly format with embedded styling
 - Edit content if needed before downloading
 - Use in your job applications!
 
@@ -147,9 +151,41 @@ VITE_MAX_FILE_SIZE=10  # Maximum file size in MB
 ### AI & Processing
 
 - **Google Gemini AI**: Advanced language model for content generation
+- **Two-Prompt Architecture**: Improved consistency and formatting
 - **pdfjs-dist**: Browser-compatible PDF text extraction
 - **mammoth**: Microsoft Word document processing
 - **Client-side Processing**: Enhanced privacy and security
+
+#### Advanced AI Generation Process
+
+The application uses a sophisticated two-prompt approach for consistent cover letter generation:
+
+**Prompt 1: Header & Structure**
+
+- Generates professional header with contact information
+- Creates consistent salutation and closing sections
+- Extracts and formats candidate details from resume
+- Uses current date and proper business letter format
+- Includes placeholder for body content
+
+**Prompt 2: Body Content**
+
+- Focuses exclusively on the main 3-paragraph content
+- Tailors content to specific job requirements
+- Maintains 250-word limit for body
+- Uses quantifiable achievements from resume
+- Ensures professional tone and structure
+
+**Benefits of Two-Prompt Approach:**
+
+- **Consistent Formatting**: Eliminates HTML/markdown inconsistencies
+- **Better Structure**: Separates formatting from content generation
+- **Improved Quality**: Each prompt specialized for its purpose
+- **Reliable Output**: Fallback mechanism if any prompt fails
+- **Faster Processing**: Parallel execution of both prompts
+
+**Fallback Mechanism:**
+If the two-prompt approach fails, the system automatically falls back to a single comprehensive prompt to ensure reliable generation.
 
 ### Export & Download
 

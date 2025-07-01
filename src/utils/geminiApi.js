@@ -8,50 +8,308 @@ if (!API_KEY) {
 
 const genAI = new GoogleGenerativeAI(API_KEY);
 
-export const generateCoverLetterWithGemini = async (jobTitle, companyName, jobDescription, resumeText) => {
+// Generate the header, salutation, and closing sections of the cover letter
+export const generateCoverLetterHeader = async (jobTitle, companyName, candidateName, contactInfo) => {
+  try {
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-pro" });
+
+    // Get current date
+    const currentDate = new Date().toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+
+    const prompt = `
+You are a professional career counselor. Generate ONLY the header, salutation, and closing sections for a business cover letter.
+
+**Information provided:**
+- Job Title: ${jobTitle}
+- Company Name: ${companyName}
+- Candidate Name: ${candidateName}
+- Email: ${contactInfo.email || "[Email]"}
+- Phone: ${contactInfo.phone || "[Phone]"}
+- LinkedIn: ${contactInfo.linkedin || "[LinkedIn]"}
+- Current Date: ${currentDate}
+
+**CRITICAL REQUIREMENTS:**
+1. Generate ONLY the header, salutation, and closing sections
+2. Use professional business letter format
+3. Return clean HTML without markdown formatting or code blocks
+4. Include placeholder {{BODY_CONTENT}} exactly where the main body wi  ll go
+5. Use the EXACT contact information provided
+
+**EXACT FORMAT REQUIRED:**
+<div class="cover-letter-header">
+  <div class="candidate-info">
+    <h2>${candidateName}</h2>
+    <p>${contactInfo.email || "[Email]"} | ${contactInfo.phone || "[Phone]"}${
+      contactInfo.linkedin ? " | " + contactInfo.linkedin : ""
+    }</p>
+  </div>
+  
+  <div class="date-section">
+    <p>${currentDate}</p>
+  </div>
+  
+  <div class="recipient-info">
+    <p>Hiring Manager<br>
+    ${companyName}<br>
+    [Company Address]</p>
+  </div>
+</div>
+
+<div class="salutation">
+  <p>Dear Hiring Manager,</p>
+</div>
+
+{{BODY_CONTENT}}
+
+<div class="closing">
+  <p>Sincerely,<br>
+  ${candidateName}</p>
+</div>
+
+Return EXACTLY the HTML format shown above with the contact information filled in and the {{BODY_CONTENT}} placeholder preserved.`;
+
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    let text = response.text();
+
+    // Clean up any potential markdown formatting
+    text = text
+      .replace(/```html/g, "")
+      .replace(/```/g, "")
+      .trim();
+
+    // Ensure the placeholder is preserved
+    if (!text.includes("{{BODY_CONTENT}}")) {
+      console.warn("Header generation missing body placeholder, attempting to fix...");
+      text = text.replace('</div>\n\n<div class="closing">', '</div>\n\n{{BODY_CONTENT}}\n\n<div class="closing">');
+    }
+
+    return text;
+  } catch (error) {
+    console.error("Error generating cover letter header:", error);
+    throw new Error(`Failed to generate cover letter header: ${error.message}`);
+  }
+};
+
+// Generate the main body content (3 paragraphs) of the cover letter
+export const generateCoverLetterBody = async (jobTitle, companyName, jobDescription, resumeText) => {
   try {
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-pro" });
 
     const prompt = `
-You are a professional career counselor and resume writer. Generate a compelling, personalized cover letter based on the following information:
+You are a professional career counselor and resume writer. Generate ONLY the main body content (3 paragraphs) for a cover letter.
 
-**Job Title:** ${jobTitle}
-**Company Name:** ${companyName}
-**Job Description:** ${jobDescription}
+**Job Information:**
+- Job Title: ${jobTitle}
+- Company Name: ${companyName}
+- Job Description: ${jobDescription}
 
 **Resume/Candidate Information:**
 ${resumeText}
 
-**Instructions:**
-1. Create a professional cover letter that highlights the candidate's most relevant skills and experiences
-2. Tailor the content specifically to the job requirements and company
-3. Use a professional but engaging tone
-4. Include specific examples from the candidate's background that align with the job requirements
-5. Keep it concise (3 paragraphs) < 300 words
-6. Format it as HTML with proper structure and styling
-7. Include placeholders for contact information that the user can fill in
-8. Make it compelling and personalized, not generic
+**CRITICAL REQUIREMENTS:**
+1. Generate EXACTLY 3 paragraphs only - no more, no less
+2. Maximum 250 words total for the body content
+3. Use specific examples from the candidate's background
+4. Tailor content to the job requirements and company
+5. Return clean HTML paragraphs without any header, salutation, or closing
+6. Do NOT include any markdown formatting, code blocks, or extra text
 
-**Format the response as clean HTML with the following structure:**
-- Header with candidate name and contact info placeholders
-- Date
-- Recipient information
-- Subject line
-- Body paragraphs
-- Professional closing
+**BODY PARAGRAPH STRUCTURE:**
+Paragraph 1: Opening statement expressing interest in the specific position and company, briefly mentioning key qualifications (2-3 sentences max)
+Paragraph 2: Highlight most relevant experience and achievements that directly relate to job requirements, include specific examples with quantifiable results (3-4 sentences max)  
+Paragraph 3: Closing paragraph expressing enthusiasm, mentioning next steps, and thanking them (2-3 sentences max)
 
-Return only the HTML content without any markdown formatting or code blocks.
-    `;
+**WRITING GUIDELINES:**
+- Keep each paragraph focused and concise
+- Use active voice and strong action verbs
+- Include specific achievements with quantifiable results when possible
+- Match the candidate's experience to job requirements
+- Show knowledge of the company when possible
+- Maintain professional but engaging tone
+- Stay under 250 words total
+
+**REQUIRED FORMAT:**
+Return EXACTLY this structure:
+<div class="body-content">
+<p>[First paragraph content here]</p>
+<p>[Second paragraph content here]</p>
+<p>[Third paragraph content here]</p>
+</div>
+
+Return only the HTML content as specified above, without any markdown formatting, code blocks, or additional text.`;
 
     const result = await model.generateContent(prompt);
     const response = await result.response;
-    const text = response.text();
+    let text = response.text();
+
+    // Clean up any potential markdown formatting
+    text = text
+      .replace(/```html/g, "")
+      .replace(/```/g, "")
+      .trim();
+
+    // Ensure proper body content structure
+    if (!text.includes('<div class="body-content">')) {
+      console.warn("Body generation missing proper structure, attempting to fix...");
+      text = `<div class="body-content">\n${text}\n</div>`;
+    }
 
     return text;
   } catch (error) {
-    console.error("Error generating cover letter with Gemini:", error);
-    throw new Error(`Failed to generate cover letter: ${error.message}`);
+    console.error("Error generating cover letter body:", error);
+    throw new Error(`Failed to generate cover letter body: ${error.message}`);
   }
+};
+
+// Combined function that generates the complete cover letter using two prompts
+export const generateCoverLetterWithGemini = async (
+  jobTitle,
+  companyName,
+  jobDescription,
+  resumeText,
+  candidateName = null
+) => {
+  try {
+    // Use provided candidate name or extract from resume as fallback
+    const finalCandidateName = candidateName || extractNameFromResume(resumeText);
+    const contactInfo = extractContactInfoFromResume(resumeText);
+
+    console.log("Generating cover letter with two-prompt approach...");
+    console.log("Candidate Name:", finalCandidateName);
+    console.log("Contact Info:", contactInfo);
+
+    // Generate header and body separately with parallel execution
+    const [headerContent, bodyContent] = await Promise.all([
+      generateCoverLetterHeader(jobTitle, companyName, finalCandidateName, contactInfo),
+      generateCoverLetterBody(jobTitle, companyName, jobDescription, resumeText),
+    ]);
+
+    console.log("Header content generated:", headerContent.substring(0, 200) + "...");
+    console.log("Body content generated:", bodyContent.substring(0, 200) + "...");
+
+    // Combine the two parts
+    let completeCoverLetter = headerContent.replace("{{BODY_CONTENT}}", bodyContent);
+
+    // Additional cleanup to remove any residual markdown or formatting issues
+    completeCoverLetter = completeCoverLetter
+      .replace(/```html/g, "")
+      .replace(/```/g, "")
+      .replace(/^\s*\n/gm, "")
+      .trim();
+
+    // Validate the final output
+    if (
+      !completeCoverLetter.includes('<div class="cover-letter-header">') ||
+      !completeCoverLetter.includes('<div class="body-content">') ||
+      !completeCoverLetter.includes('<div class="closing">')
+    ) {
+      console.warn("Generated cover letter missing required sections, using fallback approach...");
+      throw new Error("Generated content missing required sections");
+    }
+
+    console.log("Complete cover letter generated successfully");
+    return completeCoverLetter;
+  } catch (error) {
+    console.error("Error generating cover letter with Gemini:", error);
+
+    // Fallback: try single prompt approach if two-prompt fails
+    console.log("Attempting fallback single-prompt generation...");
+    try {
+      return await generateCoverLetterSinglePrompt(
+        jobTitle,
+        companyName,
+        jobDescription,
+        resumeText,
+        finalCandidateName
+      );
+    } catch (fallbackError) {
+      console.error("Fallback generation also failed:", fallbackError);
+      throw new Error(`Failed to generate cover letter: ${error.message}`);
+    }
+  }
+};
+
+// Fallback single prompt function
+const generateCoverLetterSinglePrompt = async (
+  jobTitle,
+  companyName,
+  jobDescription,
+  resumeText,
+  candidateName = null
+) => {
+  const model = genAI.getGenerativeModel({ model: "gemini-2.5-pro" });
+  const finalCandidateName = candidateName || extractNameFromResume(resumeText);
+  const contactInfo = extractContactInfoFromResume(resumeText);
+  const currentDate = new Date().toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+
+  const prompt = `
+Generate a complete professional cover letter with proper formatting.
+
+**Job Information:**
+- Job Title: ${jobTitle}
+- Company Name: ${companyName}
+- Job Description: ${jobDescription}
+
+**Candidate Information:**
+- Name: ${finalCandidateName}
+- Email: ${contactInfo.email || "[Email]"}
+- Phone: ${contactInfo.phone || "[Phone]"}
+- LinkedIn: ${contactInfo.linkedin || ""}
+- Resume: ${resumeText}
+
+**Requirements:**
+- Professional business letter format
+- Maximum 300 words
+- Exactly 3 body paragraphs
+- Clean HTML formatting
+
+Return the complete cover letter in the following HTML structure:
+
+<div class="cover-letter-header">
+  <div class="candidate-info">
+    <h2>${finalCandidateName}</h2>
+    <p>${contactInfo.email || "[Email]"} | ${contactInfo.phone || "[Phone]"}${
+    contactInfo.linkedin ? " | " + contactInfo.linkedin : ""
+  }</p>
+  </div>
+  <div class="date-section">
+    <p>${currentDate}</p>
+  </div>
+  <div class="recipient-info">
+    <p>Hiring Manager<br>${companyName}<br>[Company Address]</p>
+  </div>
+</div>
+
+<div class="salutation">
+  <p>Dear Hiring Manager,</p>
+</div>
+
+<div class="body-content">
+<p>[Paragraph 1: Opening and interest]</p>
+<p>[Paragraph 2: Relevant experience]</p>
+<p>[Paragraph 3: Closing and next steps]</p>
+</div>
+
+<div class="closing">
+  <p>Sincerely,<br>${finalCandidateName}</p>
+</div>`;
+
+  const result = await model.generateContent(prompt);
+  const response = await result.response;
+  return response
+    .text()
+    .replace(/```html/g, "")
+    .replace(/```/g, "")
+    .trim();
 };
 
 export const extractNameFromResume = (resumeText) => {
