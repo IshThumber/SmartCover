@@ -287,12 +287,7 @@ export const exportToWord = async (htmlContent, filename = "cover-letter") => {
   }
 };
 
-/**
- * Generate a text-selectable PDF from plain text content
- * @param {string} textContent - The content to include in the PDF (can be converted HTML or Markdown as plain text)
- * @param {string} filename - Name of the output PDF file (default is "cover-letter")
- */
-export const exportSelectablePDF = (textContent, filename = "cover-letter") => {
+export const exportSelectablePDF = (htmlContent, filename = "cover-letter") => {
   try {
     const doc = new jsPDF({
       unit: "mm",
@@ -304,39 +299,102 @@ export const exportSelectablePDF = (textContent, filename = "cover-letter") => {
     doc.setFont("times", "normal");
     doc.setFontSize(12);
 
-    // Wrap long text to fit page width (180mm wide with 15mm margin on each side)
+    // Margins and layout
     const marginLeft = 15;
+    const marginRight = 15;
     const marginTop = 20;
-    const maxLineWidth = 180;
+    const maxLineWidth = 180; // A4 width (210mm) - left margin (15mm) - right margin (15mm)
     const lineHeight = 6;
-
-    // Convert HTML to plain text while preserving some structure
-    const cleanText = textContent
-      .replace(/<[^>]*>/g, '') // Remove HTML tags
-      .replace(/&nbsp;/g, ' ') // Replace HTML entities
-      .replace(/&amp;/g, '&')
-      .replace(/&lt;/g, '<')
-      .replace(/&gt;/g, '>')
-      .replace(/&quot;/g, '"')
-      .trim();
-
-    const lines = doc.splitTextToSize(cleanText, maxLineWidth);
-    
-    // Add text to PDF with proper line spacing
-    let currentY = marginTop;
     const pageHeight = 297; // A4 height in mm
     const marginBottom = 20;
 
-    lines.forEach((line, index) => {
-      // Check if we need a new page
-      if (currentY > pageHeight - marginBottom) {
-        doc.addPage();
-        currentY = marginTop;
+    let currentY = marginTop;
+
+    // Parse HTML content to extract structured information
+    const parser = new DOMParser();
+    const htmlDoc = parser.parseFromString(htmlContent, "text/html");
+
+    // Helper function to add text with proper spacing
+    const addText = (text, fontSize = 12, isBold = false, alignment = "left", spacingAfter = 6) => {
+      if (!text || !text.trim()) return;
+
+      doc.setFontSize(fontSize);
+      doc.setFont("times", isBold ? "bold" : "normal");
+
+      const lines = doc.splitTextToSize(text.trim(), maxLineWidth);
+
+      lines.forEach((line) => {
+        // Check if we need a new page
+        if (currentY > pageHeight - marginBottom) {
+          doc.addPage();
+          currentY = marginTop;
+        }
+
+        let xPosition = marginLeft;
+        if (alignment === "center") {
+          const textWidth = doc.getTextWidth(line);
+          xPosition = (210 - textWidth) / 2; // Center on A4 page (210mm wide)
+        }
+
+        doc.text(line, xPosition, currentY);
+        currentY += lineHeight;
+      });
+
+      currentY += spacingAfter;
+    };
+
+    // Extract and format header
+    const headerElement = htmlDoc.querySelector(".cover-letter-header");
+    if (headerElement) {
+      // Candidate name
+      const nameElement = headerElement.querySelector(".candidate-info h2");
+      if (nameElement) {
+        addText(nameElement.textContent, 16, true, "center", 4);
       }
-      
-      doc.text(line, marginLeft, currentY);
-      currentY += lineHeight;
-    });
+
+      // Contact info
+      const contactElement = headerElement.querySelector(".candidate-info p");
+      if (contactElement) {
+        addText(contactElement.textContent, 11, false, "center", 12);
+      }
+
+      // Date
+      const dateElement = headerElement.querySelector(".date-section p");
+      if (dateElement) {
+        addText(dateElement.textContent, 12, false, "left", 12);
+      }
+
+      // Recipient
+      const recipientElement = headerElement.querySelector(".recipient-info p");
+      if (recipientElement) {
+        const recipientText = recipientElement.innerHTML.replace(/<br\s*\/?>/gi, "\n").replace(/<[^>]*>/g, "");
+        addText(recipientText, 12, false, "left", 12);
+      }
+    }
+
+    // Salutation
+    const salutationElement = htmlDoc.querySelector(".salutation p");
+    if (salutationElement) {
+      addText(salutationElement.textContent, 12, false, "left", 8);
+    }
+
+    // Body content
+    const bodyElement = htmlDoc.querySelector(".body-content");
+    if (bodyElement) {
+      const paragraphs = bodyElement.querySelectorAll("p");
+      paragraphs.forEach((p, index) => {
+        if (p.textContent.trim()) {
+          addText(p.textContent, 12, false, "left", index < paragraphs.length - 1 ? 8 : 12);
+        }
+      });
+    }
+
+    // Closing
+    const closingElement = htmlDoc.querySelector(".closing p");
+    if (closingElement) {
+      const closingText = closingElement.innerHTML.replace(/<br\s*\/?>/gi, "\n").replace(/<[^>]*>/g, "");
+      addText(closingText, 12, false, "left", 0);
+    }
 
     doc.save(`${filename}.pdf`);
   } catch (error) {
