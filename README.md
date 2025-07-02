@@ -43,7 +43,18 @@ Transform your job application process with AI-powered cover letter generation:
 - **PDF Export (Direct Method)**: Optimized PDF generation with `jsPDF.html` for consistent formatting
 - **Word Document (.docx)**: Native Microsoft Word format for easy editing and collaboration
 - **HTML Export**: Web-friendly format with embedded styling and standalone functionality
+- **Google Drive Integration**: Save cover letters directly to your Google Drive in a "SmartCover" folder
 - **One-Click Downloads**: Simple dropdown menu with clearly labeled export options
+- **Export History**: Track all exported cover letters with timestamps and Drive links
+
+### ☁️ Cloud Features
+
+- **Google OAuth Integration**: Secure authentication via Supabase
+- **Per-User API Keys**: Each user manages their own Gemini API key
+- **Multiple AI Models**: Choose from various Gemini models (Flash, Pro, etc.)
+- **Google Drive Export**: Automatic folder creation and file organization
+- **Cover Letter History**: Track and access previously exported files
+- **Cloud Sync**: User preferences and settings stored in Supabase
 
 ### 🎨 User Experience
 
@@ -84,18 +95,53 @@ Transform your job application process with AI-powered cover letter generation:
 
 3. **Configure environment**
 
+   Create a `.env` file with your API keys:
+
    ```bash
-   # Copy the .env file and add your Gemini API key
-   echo "VITE_GEMINI_API_KEY=your_api_key_here" > .env
+   # Gemini AI Configuration (get from Google AI Studio)
+   VITE_GEMINI_API_KEY=your_gemini_api_key_here
+
+   # Supabase Configuration (for authentication and user data)
+   VITE_SUPABASE_URL=your_supabase_project_url
+   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+
+   # Google Drive Integration (optional - for Drive export feature)
+   VITE_GOOGLE_CLIENT_ID=your_google_oauth_client_id
+   VITE_GOOGLE_API_KEY=your_google_api_key
    ```
 
-4. **Start development server**
+   **Required for basic functionality:**
+
+   - Gemini API key (free from [Google AI Studio](https://makersuite.google.com/app/apikey))
+   - Supabase project (free from [Supabase](https://supabase.com))
+
+   **Optional for Google Drive export:**
+
+   - Google OAuth credentials (see [GOOGLE_DRIVE_SETUP.md](./GOOGLE_DRIVE_SETUP.md))
+
+4. **Set up Supabase** (required for authentication)
+
+   Follow the instructions in [SUPABASE_SETUP.md](./SUPABASE_SETUP.md) to:
+
+   - Create a Supabase project
+   - Configure Google OAuth
+   - Set up database tables
+
+5. **Set up Google Drive** (optional)
+
+   For Google Drive export functionality, follow [GOOGLE_DRIVE_SETUP.md](./GOOGLE_DRIVE_SETUP.md) to:
+
+   - Create a Google Cloud project
+   - Enable Drive API
+   - Configure OAuth credentials
+
+6. **Start development server**
 
    ```bash
    npm run dev
    ```
 
-5. **Open your browser**
+7. **Open your browser**
    ```
    http://localhost:3001
    ```
@@ -130,13 +176,31 @@ Transform your job application process with AI-powered cover letter generation:
 - Wait 10-30 seconds for AI processing
 - Review the personalized result
 
-### Step 4: Download & Use
+### Step 4: Export & Use
+
+**Choose your export method:**
+
+**📱 Download to Device:**
 
 - **PDF (Direct Method)**: Optimized PDF with consistent formatting and layout
 - **Word Document**: Editable .docx format for further customization
 - **HTML**: Web-friendly format with embedded styling for online use
-- Edit content if needed before downloading
-- Use in your job applications!
+
+**☁️ Save to Google Drive:** (if connected)
+
+- **PDF to Drive**: Automatically saved to "SmartCover" folder
+- **DOCX to Drive**: Word format saved with drive access
+- **HTML to Drive**: Web format for online sharing
+- **Automatic Organization**: Files saved with company-job naming convention
+- **Export History**: Track all saved files with timestamps and links
+
+**Google Drive Features:**
+
+- One-click connection via OAuth
+- Automatic "SmartCover" folder creation
+- Files accessible from any device
+- Export history with direct Drive links
+- Secure access (only app-created files)
 
 ## 🔧 Advanced Features
 

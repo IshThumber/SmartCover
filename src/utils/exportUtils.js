@@ -2,6 +2,7 @@ import html2pdf from "html2pdf.js";
 import jsPDF from "jspdf";
 import { Document, Paragraph, TextRun, HeadingLevel, Packer } from "docx";
 import { saveAs } from "file-saver";
+import { exportToDrive, checkDriveConnection } from "./driveApi";
 
 export const exportToPDF = async (htmlContent, filename = "cover-letter") => {
   try {
@@ -439,5 +440,154 @@ export const GeneratePDFFromHTMLDirect = async (htmlContent, filename = "documen
   } catch (error) {
     console.error("Error during cleaning:", error);
     throw new Error("Failed to clean HTML");
+  }
+};
+
+// Google Drive Export Functions
+
+export const exportToDriveAsPDF = async (htmlContent, filename = "cover-letter") => {
+  try {
+    const isConnected = await checkDriveConnection();
+    if (!isConnected) {
+      throw new Error("Not connected to Google Drive. Please connect first.");
+    }
+
+    const result = await exportToDrive(htmlContent, filename, "pdf");
+    return result;
+  } catch (error) {
+    console.error("Error exporting PDF to Drive:", error);
+    throw new Error(`Failed to export PDF to Google Drive: ${error.message}`);
+  }
+};
+
+export const exportToDriveAsDocx = async (htmlContent, filename = "cover-letter") => {
+  try {
+    const isConnected = await checkDriveConnection();
+    if (!isConnected) {
+      throw new Error("Not connected to Google Drive. Please connect first.");
+    }
+
+    const result = await exportToDrive(htmlContent, filename, "docx");
+    return result;
+  } catch (error) {
+    console.error("Error exporting DOCX to Drive:", error);
+    throw new Error(`Failed to export DOCX to Google Drive: ${error.message}`);
+  }
+};
+
+export const exportToDriveAsHTML = async (htmlContent, filename = "cover-letter") => {
+  try {
+    const isConnected = await checkDriveConnection();
+    if (!isConnected) {
+      throw new Error("Not connected to Google Drive. Please connect first.");
+    }
+
+    // Create full HTML document
+    const fullHtmlContent = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cover Letter</title>
+    <style>
+        body { 
+            font-family: 'Times New Roman', serif; 
+            max-width: 800px; 
+            margin: 0 auto; 
+            padding: 40px 20px; 
+            line-height: 1.6; 
+            color: #333;
+            background: white;
+        }
+        .header { 
+            text-align: center; 
+            margin-bottom: 30px; 
+            border-bottom: 1px solid #eee;
+            padding-bottom: 20px;
+        }
+        .header h2 { 
+            margin: 0 0 10px 0; 
+            font-size: 24px; 
+            font-weight: bold;
+        }
+        .header p { 
+            margin: 5px 0; 
+            color: #666;
+        }
+        .date, .recipient, .subject { 
+            margin-bottom: 20px; 
+        }
+        .subject strong {
+            font-weight: bold;
+        }
+        .body p { 
+            margin-bottom: 15px; 
+            text-align: justify;
+        }
+        .body ul { 
+            margin: 15px 0; 
+            padding-left: 20px;
+        }
+        .body li { 
+            margin-bottom: 8px; 
+        }
+        .signature {
+            margin-top: 30px;
+        }
+        @media print {
+            body { 
+                padding: 20px; 
+            }
+        }
+    </style>
+</head>
+<body>
+    ${htmlContent}
+</body>
+</html>`;
+
+    // Upload HTML file directly using driveApi
+    const { driveApi } = await import("./driveApi");
+    const result = await driveApi.uploadFileToDrive(fullHtmlContent, `${filename}.html`, "text/html");
+
+    return result;
+  } catch (error) {
+    console.error("Error exporting HTML to Drive:", error);
+    throw new Error(`Failed to export HTML to Google Drive: ${error.message}`);
+  }
+};
+
+// Utility function to get export options based on Drive connection
+export const getExportOptions = async () => {
+  try {
+    const isDriveConnected = await checkDriveConnection();
+
+    const baseOptions = [
+      { id: "pdf", label: "PDF (Download)", icon: "Download" },
+      { id: "html", label: "HTML (Download)", icon: "Download" },
+      { id: "docx", label: "Word Document (Download)", icon: "Download" },
+      { id: "pdf-selectable", label: "PDF with Selectable Text (Download)", icon: "Download" },
+      { id: "pdf-canvas", label: "PDF via Canvas (Download)", icon: "Download" },
+      { id: "pdf-direct", label: "PDF Direct (Download)", icon: "Download" },
+    ];
+
+    if (isDriveConnected) {
+      const driveOptions = [
+        { id: "drive-pdf", label: "PDF to Google Drive", icon: "Cloud" },
+        { id: "drive-docx", label: "Word Document to Google Drive", icon: "Cloud" },
+        { id: "drive-html", label: "HTML to Google Drive", icon: "Cloud" },
+      ];
+      return [...driveOptions, ...baseOptions];
+    }
+
+    return baseOptions;
+  } catch (error) {
+    console.error("Error getting export options:", error);
+    return [
+      { id: "pdf", label: "PDF (Download)", icon: "Download" },
+      { id: "html", label: "HTML (Download)", icon: "Download" },
+      { id: "docx", label: "Word Document (Download)", icon: "Download" },
+    ];
   }
 };

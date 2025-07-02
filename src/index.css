@@ -1,5 +1,12 @@
 @import "tailwindcss";
 
+/* CSS Custom Properties for z-index management */
+:root {
+  --z-modal-backdrop: 9998;
+  --z-modal-content: 9999;
+  --z-modal-header: 10000;
+}
+
 /* Custom styles for better typography */
 .prose {
   max-width: none;
@@ -22,6 +29,19 @@
   margin-bottom: 0.5em;
 }
 
+/* Responsive prose sizing */
+@media (max-width: 640px) {
+  .prose {
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+  
+  .prose h1, .prose h2, .prose h3 {
+    margin-top: 1.25em;
+    margin-bottom: 0.5em;
+  }
+}
+
 /* Line clamp utility for text truncation */
 .line-clamp-2 {
   overflow: hidden;
@@ -29,6 +49,14 @@
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   line-clamp: 2;
+}
+
+.line-clamp-3 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
 }
 
 /* Cover letter specific styles */
@@ -46,6 +74,91 @@
 .cover-letter-header .candidate-info p {
   color: #6b7280;
   margin-bottom: 0;
+}
+
+/* Mobile-first responsive adjustments */
+@media (max-width: 640px) {
+  .cover-letter-header .candidate-info h2 {
+    font-size: 1.25rem;
+  }
+}
+
+/* Touch-friendly interactive elements */
+@media (hover: none) and (pointer: coarse) {
+  .hover\:bg-gray-50:hover {
+    background-color: transparent;
+  }
+  
+  button, .cursor-pointer {
+    min-height: 44px; /* Minimum touch target size */
+  }
+}
+
+/* Modal z-index fixes */
+.modal-overlay {
+  z-index: var(--z-modal-backdrop) !important;
+}
+
+.modal-content {
+  z-index: var(--z-modal-content) !important;
+}
+
+.modal-header {
+  z-index: var(--z-modal-header) !important;
+}
+
+/* Ensure modals are always visible */
+[class*="z-50"] {
+  z-index: var(--z-modal-backdrop) !important;
+}
+
+/* Force modal visibility */
+.fixed.inset-0 {
+  z-index: var(--z-modal-backdrop) !important;
+}
+
+/* Custom animations for mobile modals */
+@keyframes slideInFromBottom {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slide-in-from-bottom {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-in {
+  animation-duration: 0.3s;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  animation-fill-mode: both;
+}
+
+.slide-in-from-bottom {
+  animation-name: slide-in-from-bottom;
+}
+
+/* Ensure good readability on small screens */
+@media (max-width: 480px) {
+  .text-xs {
+    font-size: 0.75rem;
+  }
+  
+  .text-sm {
+    font-size: 0.8125rem;
+  }
 }
 
 .cover-letter-header .date-section {
