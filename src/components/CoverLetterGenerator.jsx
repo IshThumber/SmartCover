@@ -13,8 +13,14 @@ import {
   History,
 } from "lucide-react";
 import { extractTextFromFile } from "../utils/fileProcessor";
-import { generateCoverLetterWithGemini } from "../utils/geminiApi";
-import { exportToPDF, exportToHTML, exportToWord, exportSelectablePDF } from "../utils/exportUtils";
+// import { generateCoverLetterWithGemini } from "../utils/geminiApi";
+import {
+  exportToPDF,
+  exportToHTML,
+  exportToWord,
+  exportSelectablePDF,
+  GeneratePDFFromHTMLDirect,
+} from "../utils/exportUtils";
 import SavedResumesModal from "./SavedResumesModal";
 
 const CoverLetterGenerator = () => {
@@ -117,11 +123,8 @@ const CoverLetterGenerator = () => {
       )} - Cover Letter`;
 
       switch (format) {
-        case "pdf":
-          await exportToPDF(generatedCoverLetter, baseFilename);
-          break;
-        case "pdf-selectable":
-          exportSelectablePDF(generatedCoverLetter, baseFilename);
+        case "pdf-direct":
+          await GeneratePDFFromHTMLDirect(generatedCoverLetter, `${baseFilename}.pdf`);
           break;
         case "docx":
         case "word":
@@ -428,28 +431,25 @@ const CoverLetterGenerator = () => {
                       </button>
                       <div
                         id="download-menu"
-                        className="hidden absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 z-10"
+                        className="hidden absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 z-10 max-h-96 overflow-y-auto"
                       >
+                        <div className="px-3 py-2 bg-gray-50 border-b text-sm font-medium text-gray-700">
+                          PDF Option
+                        </div>
                         <button
                           onClick={() => {
-                            downloadCoverLetter("pdf");
-                            document.getElementById("download-menu").classList.add("hidden");
-                          }}
-                          className="w-full text-left px-4 py-2 hover:bg-gray-50 flex items-center gap-2 rounded-t-lg"
-                        >
-                          <FileDown className="w-4 h-4 text-red-600" />
-                          PDF (Image-based)
-                        </button>
-                        <button
-                          onClick={() => {
-                            downloadCoverLetter("pdf-selectable");
+                            downloadCoverLetter("pdf-direct");
                             document.getElementById("download-menu").classList.add("hidden");
                           }}
                           className="w-full text-left px-4 py-2 hover:bg-gray-50 flex items-center gap-2"
                         >
                           <FileDown className="w-4 h-4 text-red-500" />
-                          PDF (Selectable Text)
+                          PDF (Direct Method)
                         </button>
+
+                        <div className="px-3 py-2 bg-gray-50 border-b border-t text-sm font-medium text-gray-700">
+                          Other Formats
+                        </div>
                         <button
                           onClick={() => {
                             downloadCoverLetter("docx");

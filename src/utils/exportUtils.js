@@ -355,27 +355,27 @@ export const exportSelectablePDF = (htmlContent, filename = "cover-letter") => {
       // Contact info
       const contactElement = headerElement.querySelector(".candidate-info p");
       if (contactElement) {
-        addText(contactElement.textContent, 11, false, "center", 12);
+        addText(contactElement.textContent, 11, false, "center", 8);
       }
 
       // Date
       const dateElement = headerElement.querySelector(".date-section p");
       if (dateElement) {
-        addText(dateElement.textContent, 12, false, "left", 12);
+        addText(dateElement.textContent, 12, false, "left", 6);
       }
 
       // Recipient
       const recipientElement = headerElement.querySelector(".recipient-info p");
       if (recipientElement) {
         const recipientText = recipientElement.innerHTML.replace(/<br\s*\/?>/gi, "\n").replace(/<[^>]*>/g, "");
-        addText(recipientText, 12, false, "left", 12);
+        addText(recipientText, 12, false, "left", 6);
       }
     }
 
     // Salutation
     const salutationElement = htmlDoc.querySelector(".salutation p");
     if (salutationElement) {
-      addText(salutationElement.textContent, 12, false, "left", 8);
+      addText(salutationElement.textContent, 12, false, "left", 6);
     }
 
     // Body content
@@ -384,7 +384,7 @@ export const exportSelectablePDF = (htmlContent, filename = "cover-letter") => {
       const paragraphs = bodyElement.querySelectorAll("p");
       paragraphs.forEach((p, index) => {
         if (p.textContent.trim()) {
-          addText(p.textContent, 12, false, "left", index < paragraphs.length - 1 ? 8 : 12);
+          addText(p.textContent, 12, false, "left", index < paragraphs.length - 1 ? 6 : 8);
         }
       });
     }
@@ -400,5 +400,44 @@ export const exportSelectablePDF = (htmlContent, filename = "cover-letter") => {
   } catch (error) {
     console.error("Error generating selectable PDF:", error);
     throw new Error("Failed to generate selectable text PDF");
+  }
+};
+
+export const GeneratePDFFromHTMLDirect = async (htmlContent, filename = "document.pdf") => {
+  if (typeof htmlContent !== "string") {
+    throw new Error("Invalid HTML content: input must be a string.");
+  }
+
+  try {
+    const aggressiveSpaceRegex = /[\s\u00A0\u2000-\u200A\u2028\u2029\u202F\u3000]+([@,])/g;
+
+    const cleanedHtml = htmlContent
+      .replace(aggressiveSpaceRegex, "$1")
+      .replace(/\s*-\s*/g, "-")
+      .replace(/\n/g, " ")
+      .replace(/\s{2,}/g, " ");
+
+    // Wrap cleaned HTML with a div to apply default font styling
+    const styledHtml = `
+      <div style="font-family: 'Times New Roman', serif; font-size: 12pt; line-height: 1.6; color: #333;">
+        ${cleanedHtml}
+      </div>
+    `;
+
+    const pdf = new jsPDF();
+    await pdf.html(styledHtml, {
+      callback: function (doc) {
+        doc.save(filename);
+      },
+      x: 10,
+      y: 10,
+      width: 190,
+      windowWidth: 650,
+    });
+
+    return true;
+  } catch (error) {
+    console.error("Error during cleaning:", error);
+    throw new Error("Failed to clean HTML");
   }
 };
