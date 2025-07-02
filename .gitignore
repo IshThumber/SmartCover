@@ -26,3 +26,9 @@ dist-ssr
 
 .env
 src/utils/Trial.js
+
+supabase-schema.sql
+SUPABASE_SETUP.md
+UI_ENHANCEMENTS.md
+SETUP.md
+ENHANCED_FEATURES.md

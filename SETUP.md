@@ -65,6 +65,7 @@ The application will start on `http://localhost:5173`
    - Input sanitization and error handling
 
 5. **Enhanced User Experience**
+
    - Real-time file processing feedback
    - Progress indicators during AI generation
    - Dropdown menu for export options
@@ -146,6 +147,7 @@ The application will start on `http://localhost:5173`
    - The app uses `pdfjs-dist` instead of `pdf-parse` for browser compatibility
 
 6. **Export Issues**
+
    - Modern browsers required for PDF export
    - Enable pop-ups for download functionality
    - Check browser compatibility for all features

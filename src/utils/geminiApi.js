@@ -1,17 +1,32 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+// Create Gemini AI instance with dynamic API key
+const createGenAI = (apiKey) => {
+  if (!apiKey) {
+    throw new Error("API key is required");
+  }
+  return new GoogleGenerativeAI(apiKey);
+};
 
-if (!API_KEY) {
-  console.error("VITE_GEMINI_API_KEY is not set in environment variables");
-}
-
-const genAI = new GoogleGenerativeAI(API_KEY);
+// Available Gemini models
+export const GEMINI_MODELS = {
+  "gemini-1.5-flash": "gemini-1.5-flash",
+  "gemini-1.5-pro": "gemini-1.5-pro",
+  "gemini-1.0-pro": "gemini-1.0-pro",
+};
 
 // Generate the header, salutation, and closing sections of the cover letter
-export const generateCoverLetterHeader = async (jobTitle, companyName, candidateName, contactInfo) => {
+export const generateCoverLetterHeader = async (
+  jobTitle,
+  companyName,
+  candidateName,
+  contactInfo,
+  apiKey,
+  modelName = "gemini-1.5-flash"
+) => {
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-pro" });
+    const genAI = createGenAI(apiKey);
+    const model = genAI.getGenerativeModel({ model: GEMINI_MODELS[modelName] || "gemini-1.5-flash" });
 
     // Get current date
     const currentDate = new Date().toLocaleDateString("en-US", {
@@ -96,9 +111,17 @@ Return EXACTLY the HTML format shown above with the contact information filled i
 };
 
 // Generate the main body content (3 paragraphs) of the cover letter
-export const generateCoverLetterBody = async (jobTitle, companyName, jobDescription, resumeText) => {
+export const generateCoverLetterBody = async (
+  jobTitle,
+  companyName,
+  jobDescription,
+  resumeText,
+  apiKey,
+  modelName = "gemini-1.5-flash"
+) => {
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-pro" });
+    const genAI = createGenAI(apiKey);
+    const model = genAI.getGenerativeModel({ model: GEMINI_MODELS[modelName] || "gemini-1.5-flash" });
 
     const prompt = `
 You are a professional career counselor and resume writer. Generate ONLY the main body content (3 paragraphs) for a cover letter.
@@ -172,21 +195,29 @@ export const generateCoverLetterWithGemini = async (
   companyName,
   jobDescription,
   resumeText,
-  candidateName = null
+  candidateName = null,
+  apiKey,
+  modelName = "gemini-1.5-flash"
 ) => {
   try {
+    // Validate API key
+    if (!apiKey) {
+      throw new Error("API key is required for cover letter generation");
+    }
+
     // Use provided candidate name or extract from resume as fallback
     const finalCandidateName = candidateName || extractNameFromResume(resumeText);
     const contactInfo = extractContactInfoFromResume(resumeText);
 
     console.log("Generating cover letter with two-prompt approach...");
+    console.log("Model:", modelName);
     console.log("Candidate Name:", finalCandidateName);
     console.log("Contact Info:", contactInfo);
 
     // Generate header and body separately with parallel execution
     const [headerContent, bodyContent] = await Promise.all([
-      generateCoverLetterHeader(jobTitle, companyName, finalCandidateName, contactInfo),
-      generateCoverLetterBody(jobTitle, companyName, jobDescription, resumeText),
+      generateCoverLetterHeader(jobTitle, companyName, finalCandidateName, contactInfo, apiKey, modelName),
+      generateCoverLetterBody(jobTitle, companyName, jobDescription, resumeText, apiKey, modelName),
     ]);
 
     console.log("Header content generated:", headerContent.substring(0, 200) + "...");
@@ -225,7 +256,9 @@ export const generateCoverLetterWithGemini = async (
         companyName,
         jobDescription,
         resumeText,
-        finalCandidateName
+        finalCandidateName,
+        apiKey,
+        modelName
       );
     } catch (fallbackError) {
       console.error("Fallback generation also failed:", fallbackError);
@@ -240,9 +273,12 @@ const generateCoverLetterSinglePrompt = async (
   companyName,
   jobDescription,
   resumeText,
-  candidateName = null
+  candidateName = null,
+  apiKey,
+  modelName = "gemini-1.5-flash"
 ) => {
-  const model = genAI.getGenerativeModel({ model: "gemini-2.5-pro" });
+  const genAI = createGenAI(apiKey);
+  const model = genAI.getGenerativeModel({ model: GEMINI_MODELS[modelName] || "gemini-1.5-flash" });
   const finalCandidateName = candidateName || extractNameFromResume(resumeText);
   const contactInfo = extractContactInfoFromResume(resumeText);
   const currentDate = new Date().toLocaleDateString("en-US", {
