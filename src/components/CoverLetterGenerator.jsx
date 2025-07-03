@@ -181,43 +181,15 @@ const CoverLetterGenerator = ({ apiKey }) => {
     setError("");
 
     try {
-      // const aiResponse = await generateCoverLetterWithGemini(
-      //   formData.jobTitle,
-      //   formData.companyName,
-      //   formData.jobDescription,
-      //   resumeText,
-      //   formData.candidateName,
-      //   apiKey,
-      //   selectedModel
-      // );
-
-      const aiResponse = `
-            <div class="cover-letter-header">
-        <div class="candidate-info">
-          <h2>Ish Thumber</h2>
-          <p>ishthumber343@gmail.com | 9909919803</p>
-        </div>
-        <div class="date-section">
-          <p>July 2, 2025</p>
-        </div>
-        <div class="recipient-info">
-          <p>Hiring Manager<br>
-          SpotDraft<br>
-          [Company Address]</p>
-        </div>
-      </div>
-      <div class="salutation">
-        <p>Dear Hiring Manager,</p>
-      </div>
-      <div class="body-content">
-      <p>I am writing to express my strong interest in the Cloud Engineer position at SpotDraft. As an AWS Community Builder with proven experience in architecting secure, scalable multi-cloud infrastructure and robust CI/CD pipelines, I am confident I possess the skills to contribute to your innovative contract management platform and help drive its reliability and performance.</p>
-      <p>At Searce Inc., I architected highly available API gateways handling millions of requests and designed secure private API connectivity using Private Service Connect and VPC Service Controls to safeguard sensitive data. I have a strong record of driving efficiency, having built a multi-account Terraform pipeline that reduced manual infrastructure provisioning by 70%. My expertise in implementing firewall solutions and building comprehensive observability stacks further ensures a foundation of security and 99%+ uptime, which I believe is critical for a platform like SpotDraft.</p>
-      <p>I am excited by SpotDraft's mission to streamline the contract lifecycle and am eager to apply my automation and security skills to enhance your platform. Thank you for your time and consideration. I look forward to discussing how my experience building resilient cloud systems can be a valuable asset to your team.</p>
-      </div>
-      <div class="closing">
-        <p>Sincerely,<br>
-        Ish Thumber</p>
-      </div>`;
+      const aiResponse = await generateCoverLetterWithGemini(
+        formData.jobTitle,
+        formData.companyName,
+        formData.jobDescription,
+        resumeText,
+        formData.candidateName,
+        apiKey,
+        selectedModel
+      );
 
       console.log("AI Response:", aiResponse);
 
@@ -382,8 +354,8 @@ const CoverLetterGenerator = ({ apiKey }) => {
                 <button
                   onClick={() => setShowDriveManager(!showDriveManager)}
                   className={`flex items-center justify-center sm:justify-start gap-2 px-3 py-2 rounded-lg transition-all duration-200 text-sm font-medium ${isDriveConnected
-                      ? "text-green-700 bg-green-50 hover:bg-green-100 border border-green-200"
-                      : "text-gray-700 bg-gray-50 hover:bg-gray-100 border border-gray-200"
+                    ? "text-green-700 bg-green-50 hover:bg-green-100 border border-green-200"
+                    : "text-gray-700 bg-gray-50 hover:bg-gray-100 border border-gray-200"
                     }`}
                 >
                   {isDriveConnected ? <Cloud className="w-4 h-4" /> : <CloudOff className="w-4 h-4" />}
@@ -769,8 +741,8 @@ const CoverLetterGenerator = ({ apiKey }) => {
                   {/* Drive Status */}
                   <div
                     className={`border-2 rounded-2xl p-4 sm:p-6 ${isDriveConnected
-                        ? "bg-gradient-to-br from-green-50 to-emerald-50 border-green-200"
-                        : "bg-gradient-to-br from-gray-50 to-slate-50 border-gray-200"
+                      ? "bg-gradient-to-br from-green-50 to-emerald-50 border-green-200"
+                      : "bg-gradient-to-br from-gray-50 to-slate-50 border-gray-200"
                       }`}
                   >
                     <h3
@@ -787,8 +759,8 @@ const CoverLetterGenerator = ({ apiKey }) => {
                     <button
                       onClick={() => setShowDriveManager(true)}
                       className={`w-full px-3 py-2 rounded-lg transition-colors text-sm font-medium ${isDriveConnected
-                          ? "bg-green-100 text-green-700 hover:bg-green-200"
-                          : "bg-blue-100 text-blue-700 hover:bg-blue-200"
+                        ? "bg-green-100 text-green-700 hover:bg-green-200"
+                        : "bg-blue-100 text-blue-700 hover:bg-blue-200"
                         }`}
                     >
                       {isDriveConnected ? "Manage Connection" : "Connect Drive"}
@@ -953,10 +925,10 @@ const CoverLetterGenerator = ({ apiKey }) => {
                             >
                               <FileDown
                                 className={`w-4 h-4 ${option.id.includes("pdf")
-                                    ? "text-red-500 group-hover:text-red-600"
-                                    : option.id.includes("docx")
-                                      ? "text-blue-500 group-hover:text-blue-600"
-                                      : "text-green-500 group-hover:text-green-600"
+                                  ? "text-red-500 group-hover:text-red-600"
+                                  : option.id.includes("docx")
+                                    ? "text-blue-500 group-hover:text-blue-600"
+                                    : "text-green-500 group-hover:text-green-600"
                                   }`}
                               />
                               <span className="text-sm sm:text-base text-gray-700 group-hover:text-gray-900 font-medium">
@@ -1081,6 +1053,19 @@ const CoverLetterGenerator = ({ apiKey }) => {
           )}
         </div>
       </div>
+
+      {/* Footer */}
+      <footer className="bg-white border-t border-gray-200 mt-12">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="text-center">
+            <p className="text-gray-600 text-sm sm:text-base font-medium">
+              <span className="inline-block">Built with ❤️ and AI</span>
+              <span className="hidden sm:inline mx-2">|</span>
+              <span className="block sm:inline mt-1 sm:mt-0">Making job applications easier, one cover letter at a time</span>
+            </p>
+          </div>
+        </div>
+      </footer>
 
       {/* Saved Resumes Modal */}
       <SavedResumesModal
