@@ -12,6 +12,8 @@ const createGenAI = (apiKey) => {
 export const GEMINI_MODELS = {
   "gemini-1.5-flash": "gemini-1.5-flash",
   "gemini-1.5-pro": "gemini-1.5-pro",
+  "gemini-2.5-pro": "gemini-2.5-pro",
+  "gemini-2.5-flash": "gemini-2.5-flash",
   "gemini-1.0-pro": "gemini-1.0-pro",
 };
 
@@ -412,3 +414,4 @@ export const extractContactInfoFromResume = (resumeText) => {
   console.log("Extracted contact info:", contactInfo);
   return contactInfo;
 };
+

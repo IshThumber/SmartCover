@@ -1,8 +1,8 @@
-# AI Cover Letter Generator
+# SmartCover AI - AI-Powered Cover Letter Generator
 
 A production-ready React application that generates personalized cover letters using Google's Gemini AI. Upload your resume, enter job details, and get a professionally crafted cover letter in seconds.
 
-![AI Cover Letter Generator](https://img.shields.io/badge/React-18.2.0-blue) ![Vite](https://img.shields.io/badge/Vite-5.0.0-646CFF) ![Tailwind](https://img.shields.io/badge/Tailwind-3.3.0-38B2AC) ![Gemini AI](https://img.shields.io/badge/Gemini-AI-4285F4)
+![AI Cover Letter Generator](https://img.shields.io/badge/React-19.1.0-blue) ![Vite](https://img.shields.io/badge/Vite-7.0.0-646CFF) ![Tailwind](https://img.shields.io/badge/Tailwind-4.1.11-38B2AC) ![Gemini AI](https://img.shields.io/badge/Gemini-AI-4285F4)
 
 ## ⚡ Quick Overview
 
@@ -10,25 +10,33 @@ Transform your job application process with AI-powered cover letter generation:
 
 - 📤 **Upload Resume** → PDF/DOCX support with intelligent text extraction
 - 💼 **Enter Job Details** → Company name, position, and job description
-- 🤖 **AI Generation** → Gemini 1.5 Flash creates personalized content
-- ⬇️ **Download** → PDF, Word, or HTML formats ready for applications
+- 🤖 **AI Generation** → Multiple Gemini models for personalized content
+- ⬇️ **Export Options** → PDF, Word, HTML formats + Google Drive integration
+- 🔄 **Persistent State** → Resume storage & Google Drive connection across sessions
 
 **Key Differentiators:**
 
 - 🔒 **100% Privacy**: All processing happens in your browser
-- 💾 **Resume Persistence**: Save up to 5 resumes locally
-- ⚡ **Advanced AI**: Two-prompt system for superior quality
-- 📱 **Responsive Design**: Works perfectly on all devices
+- 💾 **Smart Storage**: Save resumes + persistent Google Drive connection
+- ⚡ **Advanced AI**: Multiple Gemini models with two-prompt optimization
+- 📱 **Fully Responsive**: Mobile-first design that works everywhere
+- ☁️ **Cloud Integration**: Seamless Google Drive export with state persistence
 
 ## 🚀 Features
 
 ### ✨ Core Functionality
 
-- **AI-Powered Generation**: Uses Google Gemini 1.5 Flash for intelligent cover letter creation
+- **AI-Powered Generation**: Choose from 5 advanced Gemini models for intelligent cover letter creation
+  - 🚀 **Gemini 1.5 Flash**: Fast and efficient (Recommended)
+  - 👑 **Gemini 1.5 Pro**: Premium quality with advanced reasoning
+  - ⭐ **Gemini 1.0 Pro**: Reliable and cost-effective
+  - 🧠 **Gemini 2.5 Pro**: Latest model with enhanced capabilities
+  - ⚡ **Gemini 2.5 Flash**: Latest with ultra-fast performance
 - **Resume Analysis**: Automatically extracts and analyzes your resume content
 - **Job Matching**: Tailors cover letters to specific job descriptions and companies
 - **Smart Personalization**: Extracts contact information and personalizes templates
 - **Persistent Resume Storage**: Save and reuse resumes locally to avoid re-uploading
+- **Google Drive Integration**: Persistent connection state across page refreshes
 
 ### 📄 File Processing
 
@@ -49,19 +57,24 @@ Transform your job application process with AI-powered cover letter generation:
 
 ### ☁️ Cloud Features
 
-- **Google OAuth Integration**: Secure authentication via Supabase
-- **Per-User API Keys**: Each user manages their own Gemini API key
-- **Multiple AI Models**: Choose from various Gemini models (Flash, Pro, etc.)
-- **Google Drive Export**: Automatic folder creation and file organization
-- **Cover Letter History**: Track and access previously exported files
-- **Cloud Sync**: User preferences and settings stored in Supabase
+- **Google OAuth Integration**: Secure authentication via Supabase with persistent sessions
+- **Per-User API Keys**: Each user manages their own Gemini API key for privacy
+- **Multiple AI Models**: Choose from 5 Gemini models (Flash, Pro, 2.5 variants) with real-time switching
+- **Google Drive Export**: Automatic folder creation, file organization, and persistent connection
+- **Cover Letter History**: Track and access previously exported files with Drive links
+- **Cloud Sync**: User preferences, settings, and connection state stored securely
+- **Persistent State Management**: Drive connection survives page refreshes and browser sessions
+- **Automatic Token Management**: Smart token validation, expiry handling, and renewal
 
 ### 🎨 User Experience
 
-- **Modern UI**: Beautiful, responsive design with Tailwind CSS
-- **Progress Tracking**: Visual indicators for generation progress
-- **Edit Functionality**: Review and modify generated content
-- **Mobile Responsive**: Works perfectly on all devices
+- **Modern UI**: Beautiful, responsive design with Tailwind CSS v4 and mobile-first approach
+- **Smart Modals**: Bottom sheets on mobile, centered modals on desktop with proper z-index
+- **Progress Tracking**: Visual indicators for generation progress with real-time feedback
+- **Edit Functionality**: Review and modify generated content before export
+- **Mobile Responsive**: Fully optimized for desktop, tablet, and mobile devices
+- **Persistent Footer**: Professional branding across all pages
+- **Visual Status Indicators**: Real-time connection status for Google Drive integration
 
 ### 🔒 Security & Performance
 
@@ -86,13 +99,11 @@ Transform your job application process with AI-powered cover letter generation:
    git clone <repository-url>
    cd ai-cover-letter-generator
    ```
-
 2. **Install dependencies**
 
    ```bash
    npm install
    ```
-
 3. **Configure environment**
 
    Create a `.env` file with your API keys:
@@ -118,7 +129,6 @@ Transform your job application process with AI-powered cover letter generation:
    **Optional for Google Drive export:**
 
    - Google OAuth credentials (see [GOOGLE_DRIVE_SETUP.md](./GOOGLE_DRIVE_SETUP.md))
-
 4. **Set up Supabase** (required for authentication)
 
    Follow the instructions in [SUPABASE_SETUP.md](./SUPABASE_SETUP.md) to:
@@ -126,7 +136,6 @@ Transform your job application process with AI-powered cover letter generation:
    - Create a Supabase project
    - Configure Google OAuth
    - Set up database tables
-
 5. **Set up Google Drive** (optional)
 
    For Google Drive export functionality, follow [GOOGLE_DRIVE_SETUP.md](./GOOGLE_DRIVE_SETUP.md) to:
@@ -134,14 +143,13 @@ Transform your job application process with AI-powered cover letter generation:
    - Create a Google Cloud project
    - Enable Drive API
    - Configure OAuth credentials
-
 6. **Start development server**
 
    ```bash
    npm run dev
    ```
-
 7. **Open your browser**
+
    ```
    http://localhost:3001
    ```
@@ -265,14 +273,17 @@ VITE_MAX_FILE_SIZE=10  # Maximum file size in MB
 
 ```json
 {
-  "@google/generative-ai": "^0.24.1", // Gemini AI integration
+  "@google/generative-ai": "^0.24.1", // Gemini AI integration (5 models supported)
+  "@supabase/supabase-js": "^2.39.3", // Authentication and cloud sync
   "docx": "^9.5.1", // Word document generation
   "file-saver": "^2.0.5", // Cross-browser file downloads
-  "html2pdf.js": "^0.10.3", // PDF generation (alternative method)
+  "html2pdf.js": "^0.10.3", // PDF generation (image-based method)
+  "jspdf": "^2.5.2", // PDF generation (direct method)
   "mammoth": "^1.9.1", // DOCX file processing
   "pdfjs-dist": "^5.3.31", // PDF text extraction
-  "react": "^19.1.0", // UI framework
-  "tailwindcss": "^4.1.11" // CSS framework
+  "react": "^19.1.0", // Modern UI framework
+  "tailwindcss": "^4.1.11", // Utility-first CSS framework
+  "vite": "^7.0.0" // Lightning-fast build tool
 }
 ```
 
@@ -280,21 +291,45 @@ VITE_MAX_FILE_SIZE=10  # Maximum file size in MB
 
 ### Frontend Stack
 
-- **React 18**: Modern hooks-based architecture with functional components
-- **Vite**: Lightning-fast build tool with HMR and optimized production builds
-- **Tailwind CSS**: Utility-first CSS framework for rapid UI development
-- **Lucide React**: Beautiful, consistent icon library
+- **React 19**: Modern hooks-based architecture with functional components and latest features
+- **Vite 7**: Lightning-fast build tool with HMR and optimized production builds
+- **Tailwind CSS v4**: Utility-first CSS framework for rapid, responsive UI development
+- **Lucide React**: Beautiful, consistent icon library with 1000+ icons
+- **Supabase**: Backend-as-a-Service for authentication, database, and real-time features
 
 ### AI & Processing Pipeline
 
-- **Google Gemini 1.5 Flash**: Advanced language model for intelligent content generation
+- **Multiple Gemini Models**: Advanced language models for intelligent content generation
+  - **Gemini 1.5 Flash** (Recommended): Fast, efficient, cost-effective
+  - **Gemini 1.5 Pro** (Premium): Advanced reasoning, superior quality
+  - **Gemini 1.0 Pro** (Balanced): Reliable performance, moderate cost
+  - **Gemini 2.5 Pro** (Latest): Enhanced capabilities, premium features
+  - **Gemini 2.5 Flash** (Newest): Ultra-fast performance with latest improvements
 - **Two-Prompt Architecture**: Sophisticated approach for consistent, high-quality output
 - **Client-side File Processing**: Enhanced privacy with local text extraction
 - **Intelligent Resume Analysis**: Advanced parsing and information extraction
+- **Model Selection Interface**: Real-time model switching with detailed comparisons
 
 #### AI Generation Architecture
 
 The application implements a sophisticated dual-prompt system for superior cover letter generation:
+
+**🔹 Five Advanced AI Models:**
+
+The application supports 5 different Gemini models, each optimized for different use cases:
+
+- **🚀 Gemini 1.5 Flash** (Recommended): Fast, efficient, and cost-effective. Perfect for most users.
+- **👑 Gemini 1.5 Pro** (Premium): Advanced reasoning and superior quality for complex applications.
+- **⭐ Gemini 1.0 Pro** (Balanced): Reliable performance with moderate cost and good quality.
+- **🧠 Gemini 2.5 Pro** (Latest): Enhanced capabilities with cutting-edge AI features.
+- **⚡ Gemini 2.5 Flash** (Newest): Ultra-fast performance with latest model improvements.
+
+**Model Selection Features:**
+
+- Real-time model switching without losing work
+- Detailed comparison of speed, quality, and cost
+- Visual indicators for recommended, premium, and latest models
+- Smart model recommendations based on use case
 
 **🔹 Two-Prompt System Benefits:**
 
@@ -303,6 +338,7 @@ The application implements a sophisticated dual-prompt system for superior cover
 - **Enhanced Quality**: Better content structure and professional formatting
 - **Reliable Output**: Robust fallback mechanisms for consistent generation
 - **Faster Processing**: Optimized prompt design for quicker response times
+- **Model Flexibility**: Works seamlessly across all 5 supported Gemini models
 
 **🔹 Prompt 1: Header & Structure Generation**
 
@@ -322,6 +358,16 @@ The application implements a sophisticated dual-prompt system for superior cover
 
 **🔹 Intelligent Fallback System:**
 If the two-prompt approach encounters issues, the system automatically falls back to a comprehensive single-prompt method, ensuring reliable generation under all conditions.
+
+**🔹 Persistent State Management:**
+
+The application now includes comprehensive persistent state management:
+
+- **Google Drive Connection**: Maintains connection across page refreshes and browser sessions
+- **Token Management**: Automatic validation, expiry checking, and renewal handling
+- **Local Storage**: Resume data and user preferences saved locally
+- **Connection Monitoring**: Periodic checks ensure reliable Drive integration
+- **Error Recovery**: Graceful handling of network issues and token expiry
 
 ### File Processing Technology
 
@@ -382,15 +428,14 @@ npm run lint       # Run ESLint for code quality checks
    cd ai-cover-letter-generator
    npm install
    ```
-
 2. **Environment configuration**
 
    ```bash
    # Create .env file with your Gemini API key
    echo "VITE_GEMINI_API_KEY=your_api_key_here" > .env
    ```
-
 3. **Start development server**
+
    ```bash
    npm run dev
    # Access at http://localhost:3001
@@ -409,15 +454,21 @@ npm run lint       # Run ESLint for code quality checks
 ```
 src/
 ├── components/
-│   ├── CoverLetterGenerator.jsx  # Main application component
-│   └── SavedResumesModal.jsx     # Resume management modal
+│   ├── CoverLetterGenerator.jsx     # Main application component with responsive UI
+│   ├── SavedResumesModal.jsx        # Resume management modal with mobile optimization
+│   ├── ModelSelector.jsx            # AI model selection with 5 Gemini models
+│   ├── LoginPage.jsx                # Authentication page with beautiful footer
+│   └── DriveConnectionManager.jsx   # Google Drive integration with persistent state
 ├── utils/
-│   ├── geminiApi.js             # AI integration & two-prompt system
-│   ├── fileProcessor.js         # PDF/DOCX file handling
-│   ├── exportUtils.js           # Multiple export format handlers
-│   └── resumeStorage.js         # Local storage for resume persistence
-├── App.jsx                      # Root component
-└── main.jsx                     # Entry point
+│   ├── geminiApi.js                 # AI integration with 5-model support & two-prompt system
+│   ├── fileProcessor.js             # PDF/DOCX file handling with Web Workers
+│   ├── exportUtils.js               # Multiple export format handlers (PDF, DOCX, HTML)
+│   ├── driveApi.js                  # Google Drive API with persistent state management
+│   └── resumeStorage.js             # Local storage for resume persistence
+├── contexts/
+│   └── AuthContext.jsx              # Supabase authentication context
+├── App.jsx                          # Root component with routing logic
+└── main.jsx                         # Entry point with error boundaries
 ```
 
 ## 🐛 Troubleshooting
@@ -492,34 +543,30 @@ We welcome contributions! Here's how to get started:
    ```bash
    git fork https://github.com/your-username/ai-cover-letter-generator
    ```
-
 2. **Create a feature branch**
 
    ```bash
    git checkout -b feature/amazing-new-feature
    ```
-
 3. **Make your changes**
 
    - Follow existing code patterns and conventions
    - Add tests for new functionality
    - Update documentation as needed
-
 4. **Test your changes**
 
    ```bash
    npm run lint    # Check code quality
    npm run build   # Verify production build
    ```
-
 5. **Commit and push**
 
    ```bash
    git commit -m 'Add amazing new feature'
    git push origin feature/amazing-new-feature
    ```
-
 6. **Open a Pull Request**
+
    - Provide clear description of changes
    - Reference any related issues
    - Include screenshots for UI changes
@@ -624,4 +671,4 @@ We love hearing about new ideas! When suggesting features:
 
 **Built with ❤️ and AI | Making job applications easier, one cover letter at a time**
 
-_Last updated: January 2024 | Version: 2.0.0_
+_Last updated: July 2025 | Version: 1.0.0_
