@@ -207,7 +207,7 @@ const LoginPage = () => {
         {/* Footer */}
         <div className="mt-12 pt-8 border-t border-white/20">
           <div className="text-center">
-            <p className="text-white/80 text-sm sm:text-base font-medium">
+            <p className="text-black/80 text-sm sm:text-base font-medium">
               <span className="inline-block">Built with ❤️ and AI</span>
               <span className="hidden sm:inline mx-2">|</span>
               <span className="block sm:inline mt-1 sm:mt-0">Making job applications easier, one cover letter at a time</span>
