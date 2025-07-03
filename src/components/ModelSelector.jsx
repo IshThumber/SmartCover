@@ -130,144 +130,88 @@ const ModelSelector = ({ selectedModel, onModelChange }) => {
   };
 
   return (
-    <div className="model-selector relative">
-      <label className="block text-sm font-semibold text-gray-700 mb-3">
-        <div className="flex items-center gap-2">
-          <Brain className="w-4 h-4 text-indigo-600" />
-          AI Model Selection
+    <div className="model-selector">
+      <div className="space-y-3">
+        <div className="text-sm font-medium text-gray-700 mb-4">
+          Select your preferred AI model for generating cover letters:
         </div>
-      </label>
 
-      <div className="relative">
-        <button
-          type="button"
-          onClick={() => setIsOpen(!isOpen)}
-          className="w-full bg-white border-2 border-gray-200 rounded-xl px-4 py-4 text-left shadow-sm hover:shadow-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 hover:border-gray-300"
-        >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              {selectedModelData && (
-                <>
+        <div className="space-y-3">
+          {models.map((model, index) => {
+            const IconComponent = model.icon;
+            const isSelected = selectedModel === model.id;
+            return (
+              <button
+                key={model.id}
+                onClick={() => onModelChange(model.id)}
+                className={`w-full p-4 text-left rounded-xl border-2 transition-all duration-200 ${
+                  isSelected
+                    ? `${model.bgColor} ${model.borderColor} ring-2 ring-indigo-500 ring-opacity-50`
+                    : "bg-white border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                }`}
+              >
+                <div className="flex items-start gap-4">
                   <div
-                    className={`w-12 h-12 rounded-lg ${selectedModelData.bgColor} ${selectedModelData.borderColor} border-2 flex items-center justify-center`}
+                    className={`w-12 h-12 rounded-lg ${model.bgColor} ${
+                      model.borderColor
+                    } border-2 flex items-center justify-center transition-all duration-200 ${
+                      isSelected ? "scale-110" : ""
+                    }`}
                   >
-                    <selectedModelData.icon className={`w-6 h-6 ${selectedModelData.color}`} />
+                    <IconComponent className={`w-6 h-6 ${model.color}`} />
                   </div>
                   <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="font-semibold text-gray-900 text-lg">{selectedModelData.name}</span>
-                      {selectedModelData.recommended && (
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="font-semibold text-gray-900 text-base sm:text-lg">{model.name}</span>
+                      {isSelected && <CheckCircle className="w-5 h-5 text-green-600" />}
+                      {model.recommended && (
                         <span className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded-full font-medium flex items-center gap-1">
                           <Award className="w-3 h-3" />
                           Recommended
                         </span>
                       )}
-                      {selectedModelData.premium && (
+                      {model.premium && (
                         <span className="px-2 py-1 text-xs bg-purple-100 text-purple-700 rounded-full font-medium flex items-center gap-1">
                           <Crown className="w-3 h-3" />
                           Premium
                         </span>
                       )}
-                      {selectedModelData.latest && (
+                      {model.latest && (
                         <span className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded-full font-medium flex items-center gap-1">
                           <Sparkles className="w-3 h-3" />
                           Latest
                         </span>
                       )}
                     </div>
-                    <span className="text-sm text-gray-600">{selectedModelData.description}</span>
-                  </div>
-                </>
-              )}
-            </div>
-            <ChevronDown
-              className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
-            />
-          </div>
-        </button>
+                    <p className="text-sm text-gray-600 mb-3">{model.description}</p>
 
-        {isOpen && (
-          <div className="absolute z-20 mt-2 w-full bg-white border border-gray-200 rounded-xl shadow-2xl overflow-hidden">
-            <div className="py-2 max-h-96 overflow-y-auto">
-              {models.map((model, index) => {
-                const IconComponent = model.icon;
-                const isSelected = selectedModel === model.id;
-                return (
-                  <button
-                    key={model.id}
-                    onClick={() => {
-                      onModelChange(model.id);
-                      setIsOpen(false);
-                    }}
-                    className={`w-full px-4 py-4 text-left hover:bg-gray-50 transition-all duration-200 relative ${
-                      isSelected ? `${model.bgColor} border-r-4 ${model.borderColor}` : ""
-                    } ${index !== 0 ? "border-t border-gray-100" : ""}`}
-                  >
-                    <div className="flex items-start gap-4">
-                      <div
-                        className={`w-12 h-12 rounded-lg ${model.bgColor} ${
-                          model.borderColor
-                        } border-2 flex items-center justify-center transition-all duration-200 ${
-                          isSelected ? "scale-110" : ""
-                        }`}
-                      >
-                        <IconComponent className={`w-6 h-6 ${model.color}`} />
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="font-semibold text-gray-900 text-lg">{model.name}</span>
-                          {isSelected && <CheckCircle className="w-5 h-5 text-green-600" />}
-                          {model.recommended && (
-                            <span className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded-full font-medium flex items-center gap-1">
-                              <Award className="w-3 h-3" />
-                              Recommended
-                            </span>
-                          )}
-                          {model.premium && (
-                            <span className="px-2 py-1 text-xs bg-purple-100 text-purple-700 rounded-full font-medium flex items-center gap-1">
-                              <Crown className="w-3 h-3" />
-                              Premium
-                            </span>
-                          )}
-                          {model.latest && (
-                            <span className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded-full font-medium flex items-center gap-1">
-                              <Sparkles className="w-3 h-3" />
-                              Latest
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-sm text-gray-600 mb-3">{model.description}</p>
-                        <div className="flex gap-3">
-                          <span className={`px-2 py-1 text-xs rounded-full font-medium ${getSpeedColor(model.speed)}`}>
-                            ⚡ {model.speed}
-                          </span>
-                          <span
-                            className={`px-2 py-1 text-xs rounded-full font-medium ${getQualityColor(model.quality)}`}
-                          >
-                            ⭐ {model.quality}
-                          </span>
-                          <span className={`px-2 py-1 text-xs rounded-full font-medium ${getCostColor(model.cost)}`}>
-                            💰 {model.cost}
-                          </span>
-                        </div>
-                      </div>
+                    <div className="flex flex-wrap gap-2">
+                      <span className={`px-2 py-1 text-xs rounded-full font-medium ${getSpeedColor(model.speed)}`}>
+                        ⚡ {model.speed}
+                      </span>
+                      <span className={`px-2 py-1 text-xs rounded-full font-medium ${getQualityColor(model.quality)}`}>
+                        ⭐ {model.quality}
+                      </span>
+                      <span className={`px-2 py-1 text-xs rounded-full font-medium ${getCostColor(model.cost)}`}>
+                        💰 {model.cost}
+                      </span>
                     </div>
-                  </button>
-                );
-              })}
-            </div>
+                  </div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
 
-            <div className="border-t border-gray-200 px-4 py-3 bg-gradient-to-r from-indigo-50 to-purple-50">
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <Brain className="w-4 h-4 text-indigo-600" />
-                <span>
-                  <strong className="text-gray-800">Pro Tip:</strong> Flash models are perfect for most use cases. Pro
-                  models offer enhanced creativity and reasoning for complex applications.
-                </span>
-              </div>
-            </div>
+        <div className="mt-6 p-4 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl border border-indigo-200">
+          <div className="flex items-center gap-2 text-sm text-gray-600">
+            <Brain className="w-4 h-4 text-indigo-600" />
+            <span>
+              <strong className="text-gray-800">Pro Tip:</strong> Flash models are perfect for most use cases. Pro
+              models offer enhanced creativity and reasoning for complex applications.
+            </span>
           </div>
-        )}
+        </div>
       </div>
     </div>
   );

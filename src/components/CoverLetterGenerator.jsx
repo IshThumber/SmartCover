@@ -20,10 +20,10 @@ import {
 import { extractTextFromFile } from "../utils/fileProcessor";
 import { generateCoverLetterWithGemini } from "../utils/geminiApi";
 import {
-  exportToPDF,
+  // exportToPDF,
   exportToHTML,
   exportToWord,
-  exportSelectablePDF,
+  // exportSelectablePDF,
   GeneratePDFFromHTMLDirect,
   exportToDriveAsPDF,
   exportToDriveAsDocx,
@@ -61,10 +61,20 @@ const CoverLetterGenerator = ({ apiKey }) => {
   const [isExporting, setIsExporting] = useState(false);
   const fileInputRef = useRef(null);
 
-  // Check Drive connection status on component mount
+  // Check Drive connection status on component mount and set up periodic checks
   useEffect(() => {
     checkDriveStatus();
     loadExportOptions();
+
+    // Set up periodic Drive connection check (every 5 minutes)
+    const connectionCheckInterval = setInterval(() => {
+      checkDriveStatus();
+    }, 5 * 60 * 1000); // 5 minutes
+
+    // Cleanup interval on unmount
+    return () => {
+      clearInterval(connectionCheckInterval);
+    };
   }, []);
 
   // Update export options when Drive connection changes
@@ -107,8 +117,12 @@ const CoverLetterGenerator = ({ apiKey }) => {
     try {
       const connected = await checkDriveConnection();
       setIsDriveConnected(connected);
+
+      // Log connection status for debugging
+      console.log('Drive connection status:', connected);
     } catch (error) {
       console.error("Error checking Drive status:", error);
+      setIsDriveConnected(false);
     }
   };
 
@@ -167,15 +181,43 @@ const CoverLetterGenerator = ({ apiKey }) => {
     setError("");
 
     try {
-      const aiResponse = await generateCoverLetterWithGemini(
-        formData.jobTitle,
-        formData.companyName,
-        formData.jobDescription,
-        resumeText,
-        formData.candidateName,
-        apiKey,
-        selectedModel
-      );
+      // const aiResponse = await generateCoverLetterWithGemini(
+      //   formData.jobTitle,
+      //   formData.companyName,
+      //   formData.jobDescription,
+      //   resumeText,
+      //   formData.candidateName,
+      //   apiKey,
+      //   selectedModel
+      // );
+
+      const aiResponse = `
+            <div class="cover-letter-header">
+        <div class="candidate-info">
+          <h2>Ish Thumber</h2>
+          <p>ishthumber343@gmail.com | 9909919803</p>
+        </div>
+        <div class="date-section">
+          <p>July 2, 2025</p>
+        </div>
+        <div class="recipient-info">
+          <p>Hiring Manager<br>
+          SpotDraft<br>
+          [Company Address]</p>
+        </div>
+      </div>
+      <div class="salutation">
+        <p>Dear Hiring Manager,</p>
+      </div>
+      <div class="body-content">
+      <p>I am writing to express my strong interest in the Cloud Engineer position at SpotDraft. As an AWS Community Builder with proven experience in architecting secure, scalable multi-cloud infrastructure and robust CI/CD pipelines, I am confident I possess the skills to contribute to your innovative contract management platform and help drive its reliability and performance.</p>
+      <p>At Searce Inc., I architected highly available API gateways handling millions of requests and designed secure private API connectivity using Private Service Connect and VPC Service Controls to safeguard sensitive data. I have a strong record of driving efficiency, having built a multi-account Terraform pipeline that reduced manual infrastructure provisioning by 70%. My expertise in implementing firewall solutions and building comprehensive observability stacks further ensures a foundation of security and 99%+ uptime, which I believe is critical for a platform like SpotDraft.</p>
+      <p>I am excited by SpotDraft's mission to streamline the contract lifecycle and am eager to apply my automation and security skills to enhance your platform. Thank you for your time and consideration. I look forward to discussing how my experience building resilient cloud systems can be a valuable asset to your team.</p>
+      </div>
+      <div class="closing">
+        <p>Sincerely,<br>
+        Ish Thumber</p>
+      </div>`;
 
       console.log("AI Response:", aiResponse);
 
@@ -259,7 +301,13 @@ const CoverLetterGenerator = ({ apiKey }) => {
     } catch (error) {
       console.error(`Export error for ${format}:`, error);
       if (format.startsWith("drive-")) {
-        setError(`Failed to export to Google Drive: ${error.message}`);
+        if (error.message.includes("verification") || error.message.includes("app verification")) {
+          setError(
+            `Google Drive export is currently unavailable due to app verification requirements. Please use the local download options below instead.`
+          );
+        } else {
+          setError(`Failed to export to Google Drive: ${error.message}`);
+        }
       } else {
         setError(`Failed to download as ${format.toUpperCase()}: ${error.message}`);
       }
@@ -333,11 +381,10 @@ const CoverLetterGenerator = ({ apiKey }) => {
               <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                 <button
                   onClick={() => setShowDriveManager(!showDriveManager)}
-                  className={`flex items-center justify-center sm:justify-start gap-2 px-3 py-2 rounded-lg transition-all duration-200 text-sm font-medium ${
-                    isDriveConnected
+                  className={`flex items-center justify-center sm:justify-start gap-2 px-3 py-2 rounded-lg transition-all duration-200 text-sm font-medium ${isDriveConnected
                       ? "text-green-700 bg-green-50 hover:bg-green-100 border border-green-200"
                       : "text-gray-700 bg-gray-50 hover:bg-gray-100 border border-gray-200"
-                  }`}
+                    }`}
                 >
                   {isDriveConnected ? <Cloud className="w-4 h-4" /> : <CloudOff className="w-4 h-4" />}
                   <span className="hidden sm:inline">Drive</span>
@@ -374,22 +421,22 @@ const CoverLetterGenerator = ({ apiKey }) => {
               }
             }}
           >
-            <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-lg sm:w-full max-h-[90vh] overflow-hidden">
-              <div className="flex justify-between items-center p-4 sm:p-6 border-b border-gray-200 bg-white sticky top-0 z-10">
+            <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-2xl sm:w-full max-h-[95vh] sm:max-h-[90vh] overflow-hidden">
+              <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 bg-white">
                 <div>
                   <h3 className="text-lg sm:text-xl font-semibold text-gray-900">AI Model Settings</h3>
                   <p className="text-sm text-gray-500 mt-1">Choose your preferred AI model</p>
                 </div>
                 <button
                   onClick={() => setShowModelSelector(false)}
-                  className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                  className="p-2 hover:bg-gray-100 rounded-full transition-colors flex-shrink-0"
                 >
                   <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
               </div>
-              <div className="p-4 sm:p-6 max-h-[calc(90vh-80px)] overflow-y-auto">
+              <div className="p-4 sm:p-6 max-h-[calc(95vh-120px)] sm:max-h-[calc(90vh-120px)] overflow-y-auto">
                 <ModelSelector
                   selectedModel={selectedModel}
                   onModelChange={(model) => {
@@ -452,9 +499,8 @@ const CoverLetterGenerator = ({ apiKey }) => {
           <div className="flex items-center space-x-2 sm:space-x-4 min-w-max px-4">
             <div className={`flex items-center ${step >= 1 ? "text-indigo-600" : "text-gray-400"}`}>
               <div
-                className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-medium ${
-                  step >= 1 ? "bg-indigo-600 text-white" : "bg-gray-200 text-gray-500"
-                }`}
+                className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-medium ${step >= 1 ? "bg-indigo-600 text-white" : "bg-gray-200 text-gray-500"
+                  }`}
               >
                 1
               </div>
@@ -463,9 +509,8 @@ const CoverLetterGenerator = ({ apiKey }) => {
             <div className="w-8 sm:w-16 h-0.5 bg-gray-200"></div>
             <div className={`flex items-center ${step >= 2 ? "text-indigo-600" : "text-gray-400"}`}>
               <div
-                className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-medium ${
-                  step >= 2 ? "bg-indigo-600 text-white" : "bg-gray-200 text-gray-500"
-                }`}
+                className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-medium ${step >= 2 ? "bg-indigo-600 text-white" : "bg-gray-200 text-gray-500"
+                  }`}
               >
                 2
               </div>
@@ -474,9 +519,8 @@ const CoverLetterGenerator = ({ apiKey }) => {
             <div className="w-8 sm:w-16 h-0.5 bg-gray-200"></div>
             <div className={`flex items-center ${step >= 3 ? "text-indigo-600" : "text-gray-400"}`}>
               <div
-                className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-medium ${
-                  step >= 3 ? "bg-indigo-600 text-white" : "bg-gray-200 text-gray-500"
-                }`}
+                className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-medium ${step >= 3 ? "bg-indigo-600 text-white" : "bg-gray-200 text-gray-500"
+                  }`}
               >
                 3
               </div>
@@ -604,8 +648,8 @@ const CoverLetterGenerator = ({ apiKey }) => {
                           {resumeFile
                             ? resumeFile.name
                             : resumeName
-                            ? "Upload a new resume or use your saved one"
-                            : "Click to upload your resume"}
+                              ? "Upload a new resume or use your saved one"
+                              : "Click to upload your resume"}
                         </p>
                         <p className="text-xs sm:text-sm text-gray-500 mb-4">PDF or DOCX files only (max 10MB)</p>
                         <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
@@ -724,16 +768,14 @@ const CoverLetterGenerator = ({ apiKey }) => {
 
                   {/* Drive Status */}
                   <div
-                    className={`border-2 rounded-2xl p-4 sm:p-6 ${
-                      isDriveConnected
+                    className={`border-2 rounded-2xl p-4 sm:p-6 ${isDriveConnected
                         ? "bg-gradient-to-br from-green-50 to-emerald-50 border-green-200"
                         : "bg-gradient-to-br from-gray-50 to-slate-50 border-gray-200"
-                    }`}
+                      }`}
                   >
                     <h3
-                      className={`font-semibold mb-3 text-sm sm:text-base ${
-                        isDriveConnected ? "text-green-900" : "text-gray-900"
-                      }`}
+                      className={`font-semibold mb-3 text-sm sm:text-base ${isDriveConnected ? "text-green-900" : "text-gray-900"
+                        }`}
                     >
                       {isDriveConnected ? "☁️ Google Drive Connected" : "📁 Google Drive"}
                     </h3>
@@ -744,11 +786,10 @@ const CoverLetterGenerator = ({ apiKey }) => {
                     </p>
                     <button
                       onClick={() => setShowDriveManager(true)}
-                      className={`w-full px-3 py-2 rounded-lg transition-colors text-sm font-medium ${
-                        isDriveConnected
+                      className={`w-full px-3 py-2 rounded-lg transition-colors text-sm font-medium ${isDriveConnected
                           ? "bg-green-100 text-green-700 hover:bg-green-200"
                           : "bg-blue-100 text-blue-700 hover:bg-blue-200"
-                      }`}
+                        }`}
                     >
                       {isDriveConnected ? "Manage Connection" : "Connect Drive"}
                     </button>
@@ -891,9 +932,8 @@ const CoverLetterGenerator = ({ apiKey }) => {
 
                         {/* Local Download Options */}
                         <div
-                          className={`px-3 sm:px-4 py-2 sm:py-3 bg-gradient-to-r from-gray-50 to-slate-50 ${
-                            isDriveConnected ? "border-t border-b" : "border-b"
-                          } text-sm font-semibold text-gray-700 flex items-center gap-2`}
+                          className={`px-3 sm:px-4 py-2 sm:py-3 bg-gradient-to-r from-gray-50 to-slate-50 ${isDriveConnected ? "border-t border-b" : "border-b"
+                            } text-sm font-semibold text-gray-700 flex items-center gap-2`}
                         >
                           <Download className="w-4 h-4" />
                           <span>Download to Device</span>
@@ -907,19 +947,17 @@ const CoverLetterGenerator = ({ apiKey }) => {
                                 downloadCoverLetter(option.id);
                                 document.getElementById("download-menu").classList.add("hidden");
                               }}
-                              className={`w-full text-left px-3 sm:px-4 py-2.5 sm:py-3 hover:bg-gray-50 transition-colors flex items-center gap-3 group ${
-                                index === array.length - 1 ? "rounded-b-xl" : ""
-                              }`}
+                              className={`w-full text-left px-3 sm:px-4 py-2.5 sm:py-3 hover:bg-gray-50 transition-colors flex items-center gap-3 group ${index === array.length - 1 ? "rounded-b-xl" : ""
+                                }`}
                               disabled={isExporting}
                             >
                               <FileDown
-                                className={`w-4 h-4 ${
-                                  option.id.includes("pdf")
+                                className={`w-4 h-4 ${option.id.includes("pdf")
                                     ? "text-red-500 group-hover:text-red-600"
                                     : option.id.includes("docx")
-                                    ? "text-blue-500 group-hover:text-blue-600"
-                                    : "text-green-500 group-hover:text-green-600"
-                                }`}
+                                      ? "text-blue-500 group-hover:text-blue-600"
+                                      : "text-green-500 group-hover:text-green-600"
+                                  }`}
                               />
                               <span className="text-sm sm:text-base text-gray-700 group-hover:text-gray-900 font-medium">
                                 {option.label}

@@ -160,9 +160,23 @@ const DriveConnectionManager = ({ onConnectionChange }) => {
 
         {/* Error Message */}
         {error && (
-          <div className="mt-3 p-3 bg-red-50 rounded-lg border border-red-200 flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
-            <p className="text-sm text-red-700">{error}</p>
+          <div className="mt-3 p-3 bg-red-50 rounded-lg border border-red-200">
+            <div className="flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-sm text-red-700 font-medium">{error}</p>
+                {error.includes("verification") && (
+                  <div className="mt-2 text-xs text-red-600">
+                    <p className="mb-1">Don't worry! You can still export your cover letters locally:</p>
+                    <ul className="list-disc list-inside space-y-1 ml-2">
+                      <li>Use the "Export" button to save as PDF or DOCX</li>
+                      <li>Download files directly to your device</li>
+                      <li>Manually upload to Google Drive if needed</li>
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         )}
       </div>

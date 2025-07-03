@@ -112,164 +112,159 @@ export const exportToWord = async (htmlContent, filename = "cover-letter") => {
     const parser = new DOMParser();
     const doc = parser.parseFromString(htmlContent, "text/html");
 
-    // Extract content from HTML
-    const headerElement = doc.querySelector(".header");
-    const bodyElement = doc.querySelector(".body");
-    const dateElement = doc.querySelector(".date");
-    const recipientElement = doc.querySelector(".recipient");
-    const subjectElement = doc.querySelector(".subject");
-
     const documentParagraphs = [];
 
-    // Add header
-    if (headerElement) {
-      const nameElement = headerElement.querySelector("h2");
-      if (nameElement) {
-        documentParagraphs.push(
-          new Paragraph({
-            children: [
-              new TextRun({
-                text: nameElement.textContent,
-                bold: true,
-                size: 28,
-              }),
-            ],
-            heading: HeadingLevel.HEADING_1,
+    // Helper function to create paragraphs from text
+    const createParagraph = (text, options = {}) => {
+      if (!text || !text.trim()) return null;
+
+      return new Paragraph({
+        children: [
+          new TextRun({
+            text: text.trim(),
+            bold: options.bold || false,
+            size: options.size || 22,
+          }),
+        ],
+        alignment: options.alignment || "left",
+        heading: options.heading || undefined,
+        spacing: {
+          after: options.spacingAfter || 200,
+        },
+      });
+    };
+
+    // Extract all text content and structure it properly
+    const allElements = doc.body.querySelectorAll("*");
+    let foundContent = false;
+
+    // Try to find structured content first
+    const headerElement = doc.querySelector(".cover-letter-header, .header");
+    const bodyElement = doc.querySelector(".body, .body-content, .cover-letter-body");
+
+    if (headerElement || bodyElement) {
+      foundContent = true;
+
+      // Process header
+      if (headerElement) {
+        const nameElements = headerElement.querySelectorAll("h1, h2, h3");
+        nameElements.forEach((nameEl) => {
+          const para = createParagraph(nameEl.textContent, {
+            bold: true,
+            size: 28,
             alignment: "center",
-          })
-        );
+            heading: HeadingLevel.HEADING_1,
+            spacingAfter: 100,
+          });
+          if (para) documentParagraphs.push(para);
+        });
+
+        const headerParagraphs = headerElement.querySelectorAll("p");
+        headerParagraphs.forEach((p) => {
+          const para = createParagraph(p.textContent, {
+            size: 20,
+            alignment: "center",
+            spacingAfter: 100,
+          });
+          if (para) documentParagraphs.push(para);
+        });
       }
 
-      const contactPs = headerElement.querySelectorAll("p");
-      contactPs.forEach((p) => {
-        if (p.textContent.trim()) {
-          documentParagraphs.push(
-            new Paragraph({
-              children: [
-                new TextRun({
-                  text: p.textContent,
-                  size: 20,
-                }),
-              ],
-              alignment: "center",
-            })
-          );
-        }
-      });
-    }
+      // Add spacing
+      documentParagraphs.push(new Paragraph({ children: [new TextRun({ text: "" })] }));
 
-    // Add spacing
-    documentParagraphs.push(new Paragraph({ children: [new TextRun({ text: "" })] }));
-
-    // Add date
-    if (dateElement) {
-      documentParagraphs.push(
-        new Paragraph({
-          children: [
-            new TextRun({
-              text: dateElement.textContent.trim(),
-              size: 22,
-            }),
-          ],
-        })
-      );
-    }
-
-    // Add spacing
-    documentParagraphs.push(new Paragraph({ children: [new TextRun({ text: "" })] }));
-
-    // Add recipient
-    if (recipientElement) {
-      const recipientText = recipientElement.textContent.trim();
-      recipientText.split("\n").forEach((line) => {
-        if (line.trim()) {
-          documentParagraphs.push(
-            new Paragraph({
-              children: [
-                new TextRun({
-                  text: line.trim(),
-                  size: 22,
-                }),
-              ],
-            })
-          );
-        }
-      });
-    }
-
-    // Add spacing
-    documentParagraphs.push(new Paragraph({ children: [new TextRun({ text: "" })] }));
-
-    // Add subject
-    if (subjectElement) {
-      documentParagraphs.push(
-        new Paragraph({
-          children: [
-            new TextRun({
-              text: subjectElement.textContent.trim(),
-              bold: true,
-              size: 22,
-            }),
-          ],
-        })
-      );
-    }
-
-    // Add spacing
-    documentParagraphs.push(new Paragraph({ children: [new TextRun({ text: "" })] }));
-
-    // Add body content
-    if (bodyElement) {
-      const paragraphs = bodyElement.querySelectorAll("p");
-      const lists = bodyElement.querySelectorAll("ul");
-
-      // Process paragraphs
-      paragraphs.forEach((p) => {
-        if (p.textContent.trim()) {
-          documentParagraphs.push(
-            new Paragraph({
-              children: [
-                new TextRun({
-                  text: p.textContent.trim(),
-                  size: 22,
-                }),
-              ],
-              spacing: {
-                after: 200,
-              },
-            })
-          );
-        }
-      });
-
-      // Process lists
-      lists.forEach((ul) => {
-        const listItems = ul.querySelectorAll("li");
-        listItems.forEach((li) => {
-          if (li.textContent.trim()) {
-            documentParagraphs.push(
-              new Paragraph({
-                children: [
-                  new TextRun({
-                    text: `• ${li.textContent.trim()}`,
-                    size: 22,
-                  }),
-                ],
-                spacing: {
-                  after: 100,
-                },
-              })
-            );
-          }
+      // Process body
+      if (bodyElement) {
+        const bodyParagraphs = bodyElement.querySelectorAll("p");
+        bodyParagraphs.forEach((p) => {
+          const para = createParagraph(p.textContent, {
+            size: 22,
+            spacingAfter: 200,
+          });
+          if (para) documentParagraphs.push(para);
         });
-      });
+
+        // Process lists
+        const lists = bodyElement.querySelectorAll("ul, ol");
+        lists.forEach((list) => {
+          const listItems = list.querySelectorAll("li");
+          listItems.forEach((li) => {
+            const para = createParagraph(`• ${li.textContent}`, {
+              size: 22,
+              spacingAfter: 100,
+            });
+            if (para) documentParagraphs.push(para);
+          });
+        });
+      }
     }
 
-    // Create the document
+    // Fallback: if no structured content found, process all paragraphs
+    if (!foundContent) {
+      const allParagraphs = doc.querySelectorAll("p");
+      const allHeadings = doc.querySelectorAll("h1, h2, h3, h4, h5, h6");
+
+      // Add headings first
+      allHeadings.forEach((heading) => {
+        const para = createParagraph(heading.textContent, {
+          bold: true,
+          size: 26,
+          alignment: "center",
+          heading: HeadingLevel.HEADING_1,
+          spacingAfter: 150,
+        });
+        if (para) documentParagraphs.push(para);
+      });
+
+      // Add paragraphs
+      allParagraphs.forEach((p) => {
+        const para = createParagraph(p.textContent, {
+          size: 22,
+          spacingAfter: 200,
+        });
+        if (para) documentParagraphs.push(para);
+      });
+
+      // If still no content, use the raw text
+      if (documentParagraphs.length === 0) {
+        const textContent = doc.body.textContent || htmlContent.replace(/<[^>]*>/g, "");
+        const lines = textContent.split("\n").filter((line) => line.trim());
+
+        lines.forEach((line) => {
+          const para = createParagraph(line, {
+            size: 22,
+            spacingAfter: 200,
+          });
+          if (para) documentParagraphs.push(para);
+        });
+      }
+    }
+
+    // Ensure we have at least one paragraph
+    if (documentParagraphs.length === 0) {
+      documentParagraphs.push(
+        createParagraph("Cover Letter", {
+          bold: true,
+          size: 24,
+          alignment: "center",
+        })
+      );
+    }
+
+    // Create the document with proper settings
     const wordDoc = new Document({
       sections: [
         {
-          properties: {},
+          properties: {
+            page: {
+              margin: {
+                top: 1440, // 1 inch in twentieths of a point
+                right: 1440, // 1 inch
+                bottom: 1440, // 1 inch
+                left: 1440, // 1 inch
+              },
+            },
+          },
           children: documentParagraphs,
         },
       ],
@@ -282,127 +277,128 @@ export const exportToWord = async (htmlContent, filename = "cover-letter") => {
     });
 
     saveAs(blob, `${filename}.docx`);
+    return true;
   } catch (error) {
     console.error("Error exporting to Word:", error);
-    throw new Error("Failed to export to Word document");
+    throw new Error(`Failed to export to Word document: ${error.message}`);
   }
 };
 
-export const exportSelectablePDF = (htmlContent, filename = "cover-letter") => {
-  try {
-    const doc = new jsPDF({
-      unit: "mm",
-      format: "a4",
-      orientation: "portrait",
-    });
+// export const exportSelectablePDF = (htmlContent, filename = "cover-letter") => {
+//   try {
+//     const doc = new jsPDF({
+//       unit: "mm",
+//       format: "a4",
+//       orientation: "portrait",
+//     });
 
-    // Set font and styling
-    doc.setFont("times", "normal");
-    doc.setFontSize(12);
+//     // Set font and styling
+//     doc.setFont("times", "normal");
+//     doc.setFontSize(12);
 
-    // Margins and layout
-    const marginLeft = 15;
-    const marginRight = 15;
-    const marginTop = 20;
-    const maxLineWidth = 180; // A4 width (210mm) - left margin (15mm) - right margin (15mm)
-    const lineHeight = 6;
-    const pageHeight = 297; // A4 height in mm
-    const marginBottom = 20;
+//     // Margins and layout
+//     const marginLeft = 15;
+//     const marginRight = 15;
+//     const marginTop = 20;
+//     const maxLineWidth = 180; // A4 width (210mm) - left margin (15mm) - right margin (15mm)
+//     const lineHeight = 6;
+//     const pageHeight = 297; // A4 height in mm
+//     const marginBottom = 20;
 
-    let currentY = marginTop;
+//     let currentY = marginTop;
 
-    // Parse HTML content to extract structured information
-    const parser = new DOMParser();
-    const htmlDoc = parser.parseFromString(htmlContent, "text/html");
+//     // Parse HTML content to extract structured information
+//     const parser = new DOMParser();
+//     const htmlDoc = parser.parseFromString(htmlContent, "text/html");
 
-    // Helper function to add text with proper spacing
-    const addText = (text, fontSize = 12, isBold = false, alignment = "left", spacingAfter = 6) => {
-      if (!text || !text.trim()) return;
+//     // Helper function to add text with proper spacing
+//     const addText = (text, fontSize = 12, isBold = false, alignment = "left", spacingAfter = 6) => {
+//       if (!text || !text.trim()) return;
 
-      doc.setFontSize(fontSize);
-      doc.setFont("times", isBold ? "bold" : "normal");
+//       doc.setFontSize(fontSize);
+//       doc.setFont("times", isBold ? "bold" : "normal");
 
-      const lines = doc.splitTextToSize(text.trim(), maxLineWidth);
+//       const lines = doc.splitTextToSize(text.trim(), maxLineWidth);
 
-      lines.forEach((line) => {
-        // Check if we need a new page
-        if (currentY > pageHeight - marginBottom) {
-          doc.addPage();
-          currentY = marginTop;
-        }
+//       lines.forEach((line) => {
+//         // Check if we need a new page
+//         if (currentY > pageHeight - marginBottom) {
+//           doc.addPage();
+//           currentY = marginTop;
+//         }
 
-        let xPosition = marginLeft;
-        if (alignment === "center") {
-          const textWidth = doc.getTextWidth(line);
-          xPosition = (210 - textWidth) / 2; // Center on A4 page (210mm wide)
-        }
+//         let xPosition = marginLeft;
+//         if (alignment === "center") {
+//           const textWidth = doc.getTextWidth(line);
+//           xPosition = (210 - textWidth) / 2; // Center on A4 page (210mm wide)
+//         }
 
-        doc.text(line, xPosition, currentY);
-        currentY += lineHeight;
-      });
+//         doc.text(line, xPosition, currentY);
+//         currentY += lineHeight;
+//       });
 
-      currentY += spacingAfter;
-    };
+//       currentY += spacingAfter;
+//     };
 
-    // Extract and format header
-    const headerElement = htmlDoc.querySelector(".cover-letter-header");
-    if (headerElement) {
-      // Candidate name
-      const nameElement = headerElement.querySelector(".candidate-info h2");
-      if (nameElement) {
-        addText(nameElement.textContent, 16, true, "center", 4);
-      }
+//     // Extract and format header
+//     const headerElement = htmlDoc.querySelector(".cover-letter-header");
+//     if (headerElement) {
+//       // Candidate name
+//       const nameElement = headerElement.querySelector(".candidate-info h2");
+//       if (nameElement) {
+//         addText(nameElement.textContent, 16, true, "center", 4);
+//       }
 
-      // Contact info
-      const contactElement = headerElement.querySelector(".candidate-info p");
-      if (contactElement) {
-        addText(contactElement.textContent, 11, false, "center", 8);
-      }
+//       // Contact info
+//       const contactElement = headerElement.querySelector(".candidate-info p");
+//       if (contactElement) {
+//         addText(contactElement.textContent, 11, false, "center", 8);
+//       }
 
-      // Date
-      const dateElement = headerElement.querySelector(".date-section p");
-      if (dateElement) {
-        addText(dateElement.textContent, 12, false, "left", 6);
-      }
+//       // Date
+//       const dateElement = headerElement.querySelector(".date-section p");
+//       if (dateElement) {
+//         addText(dateElement.textContent, 12, false, "left", 6);
+//       }
 
-      // Recipient
-      const recipientElement = headerElement.querySelector(".recipient-info p");
-      if (recipientElement) {
-        const recipientText = recipientElement.innerHTML.replace(/<br\s*\/?>/gi, "\n").replace(/<[^>]*>/g, "");
-        addText(recipientText, 12, false, "left", 6);
-      }
-    }
+//       // Recipient
+//       const recipientElement = headerElement.querySelector(".recipient-info p");
+//       if (recipientElement) {
+//         const recipientText = recipientElement.innerHTML.replace(/<br\s*\/?>/gi, "\n").replace(/<[^>]*>/g, "");
+//         addText(recipientText, 12, false, "left", 6);
+//       }
+//     }
 
-    // Salutation
-    const salutationElement = htmlDoc.querySelector(".salutation p");
-    if (salutationElement) {
-      addText(salutationElement.textContent, 12, false, "left", 6);
-    }
+//     // Salutation
+//     const salutationElement = htmlDoc.querySelector(".salutation p");
+//     if (salutationElement) {
+//       addText(salutationElement.textContent, 12, false, "left", 6);
+//     }
 
-    // Body content
-    const bodyElement = htmlDoc.querySelector(".body-content");
-    if (bodyElement) {
-      const paragraphs = bodyElement.querySelectorAll("p");
-      paragraphs.forEach((p, index) => {
-        if (p.textContent.trim()) {
-          addText(p.textContent, 12, false, "left", index < paragraphs.length - 1 ? 6 : 8);
-        }
-      });
-    }
+//     // Body content
+//     const bodyElement = htmlDoc.querySelector(".body-content");
+//     if (bodyElement) {
+//       const paragraphs = bodyElement.querySelectorAll("p");
+//       paragraphs.forEach((p, index) => {
+//         if (p.textContent.trim()) {
+//           addText(p.textContent, 12, false, "left", index < paragraphs.length - 1 ? 6 : 8);
+//         }
+//       });
+//     }
 
-    // Closing
-    const closingElement = htmlDoc.querySelector(".closing p");
-    if (closingElement) {
-      const closingText = closingElement.innerHTML.replace(/<br\s*\/?>/gi, "\n").replace(/<[^>]*>/g, "");
-      addText(closingText, 12, false, "left", 0);
-    }
+//     // Closing
+//     const closingElement = htmlDoc.querySelector(".closing p");
+//     if (closingElement) {
+//       const closingText = closingElement.innerHTML.replace(/<br\s*\/?>/gi, "\n").replace(/<[^>]*>/g, "");
+//       addText(closingText, 12, false, "left", 0);
+//     }
 
-    doc.save(`${filename}.pdf`);
-  } catch (error) {
-    console.error("Error generating selectable PDF:", error);
-    throw new Error("Failed to generate selectable text PDF");
-  }
-};
+//     doc.save(`${filename}.pdf`);
+//   } catch (error) {
+//     console.error("Error generating selectable PDF:", error);
+//     throw new Error("Failed to generate selectable text PDF");
+//   }
+// };
 
 export const GeneratePDFFromHTMLDirect = async (htmlContent, filename = "document.pdf") => {
   if (typeof htmlContent !== "string") {
@@ -444,7 +440,6 @@ export const GeneratePDFFromHTMLDirect = async (htmlContent, filename = "documen
 };
 
 // Google Drive Export Functions
-
 export const exportToDriveAsPDF = async (htmlContent, filename = "cover-letter") => {
   try {
     const isConnected = await checkDriveConnection();

@@ -177,6 +177,7 @@ The app only requests `https://www.googleapis.com/auth/drive.file` scope, which 
    - Check that the Drive API is enabled for your project
 
 4. **"Access denied"**
+
    - User may have denied permissions
    - App may need to go through OAuth verification if not verified
 

@@ -54,6 +54,7 @@ The Google Drive export feature allows users to save generated cover letters dir
    - Connect/disconnect functionality
 
 3. **`GOOGLE_DRIVE_SETUP.md`** (246 lines)
+
    - Complete setup documentation
    - Google Cloud Console configuration
    - OAuth credential setup
@@ -86,6 +87,7 @@ The Google Drive export feature allows users to save generated cover letters dir
    - Enhanced usage guide with Drive export options
 
 5. **`package.json`**
+
    - Added `googleapis` dependency for Drive API
 
 ## 🔐 Security & Privacy
